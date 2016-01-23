@@ -10,3 +10,5 @@ EmailList = [
 
 OutputFile = "PulseOut.txt"
 SMTPConfig = "SMTP.toml"
+
+Port = 8080
