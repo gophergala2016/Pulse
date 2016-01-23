@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/gophergala2016/Pulse/pulse"
 	"github.com/gophergala2016/Pulse/pulse/config"
 )
 
@@ -30,8 +29,17 @@ func init() {
 func main() {
 	if len(flag.Args()) == 0 && !def {
 		startAPI()
+	} else if def {
+		cfg, err := config.Load(cfgPath)
+		if err != nil {
+			panic(fmt.Errorf("Could not load the config.\n %v", err))
+		}
+		if len(cfg.LogList) == 0 {
+			panic(fmt.Errorf("Must supply a list of log files in the config."))
+		}
+		startPulse(cfg.LogList)
 	} else {
-		startPulse()
+		startPulse(flag.Args())
 	}
 }
 
@@ -39,20 +47,19 @@ func startAPI() {
 	spew.Println("API Mode")
 }
 
-func startPulse() {
-	var stdIn = make(chan string)
-	if def {
-		cfg, err := config.Load(cfgPath)
-		if err != nil {
-			panic(fmt.Errorf("Could not load the config.\n %v", err))
+func startPulse(filenames []string) {
+	errChan := make(chan error)
+	go func(errChan chan error) {
+		for _, filename := range filenames {
+			if _, err := os.Stat(filename); os.IsNotExist(err) {
+				errChan <- fmt.Errorf("Could not find %s", filename)
+			}
 		}
-		spew.Dump(cfg)
-		pulse.Run(stdIn, printFunc)
-	} else {
-		spew.Println("Reading files from command line")
-		for _, arg := range flag.Args() {
-			spew.Dump(arg)
-		}
+		close(errChan)
+	}(errChan)
+
+	for err := range errChan {
+		panic(err)
 	}
 }
 
