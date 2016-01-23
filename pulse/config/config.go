@@ -28,32 +28,40 @@ type User struct {
 
 //SecretConfig is the configurations to hold the keys for MailGun
 type SecretConfig struct {
+	Sender     string `toml:"Sender"`
+	Domain     string `toml:"Domain"`
 	PrivateKey string `toml:"PrivateKey"`
 	PublicKey  string `toml:"PublicKey"`
 }
 
+var (
+	pulseConfig   = "../cmd/pulse/PulseConfig.toml"
+	mailGunConfig = "../cmd/pulse/MailGun.toml"
+	smtpConfig    = "../cmd/pulse/SMTP.toml"
+)
+
 //Load returns the main configuration
-func Load(filename string) (*Configuration, error) {
+func Load() (*Configuration, error) {
 	cfg := &Configuration{}
-	if _, err := toml.DecodeFile(filename, cfg); err != nil {
+	if _, err := toml.DecodeFile(pulseConfig, cfg); err != nil {
 		return nil, err
 	}
 	return cfg, nil
 }
 
 //LoadSMTP loads the settings for the smtp server
-func LoadSMTP(filename string) (*SMTPConfig, error) {
+func LoadSMTP() (*SMTPConfig, error) {
 	cfg := &SMTPConfig{}
-	if _, err := toml.DecodeFile(filename, cfg); err != nil {
+	if _, err := toml.DecodeFile(smtpConfig, cfg); err != nil {
 		return nil, err
 	}
 	return cfg, nil
 }
 
 //LoadSecret loads the keys for Mailgun
-func LoadSecret(filename string) (*SecretConfig, error) {
+func LoadSecret() (*SecretConfig, error) {
 	cfg := &SecretConfig{}
-	if _, err := toml.DecodeFile(filename, cfg); err != nil {
+	if _, err := toml.DecodeFile(mailGunConfig, cfg); err != nil {
 		return nil, err
 	}
 	return cfg, nil
