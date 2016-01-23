@@ -11,19 +11,24 @@ import (
 )
 
 var (
-	def  bool
-	api  bool
-	smtp string
+	def      bool
+	smtpPath string
+	cfgPath  string
 )
 
 func init() {
 	flag.BoolVar(&def, "d", false, "Turn on default mode")
-	flag.StringVar(&smtp, "smtp", "SMTP.toml", "Config location of SMTP.toml")
+	flag.StringVar(&smtpPath, "smtp", "SMTP.toml", "Config location of SMTP.toml")
+	flag.StringVar(&cfgPath, "cfg", "PulseConfig.toml", "Config locaton of PulseConfig.toml")
 	flag.Parse()
+
+	if _, err := os.Stat(cfgPath); os.IsNotExist(err) {
+		panic(fmt.Errorf("Could not find %s", cfgPath))
+	}
 }
 
 func main() {
-	if len(os.Args[1:]) == 0 {
+	if len(flag.Args()) == 0 && !def {
 		startAPI()
 	} else {
 		startPulse()
@@ -37,26 +42,12 @@ func startAPI() {
 func startPulse() {
 	var stdIn = make(chan string)
 	if def {
-		smtpCfg, err := config.LoadSMTP("C:\\Users\\dixon\\Go\\src\\github.com\\gophergala2016\\Pulse\\pulse\\cmd\\pulse\\SMTP.toml")
+		cfg, err := config.Load(cfgPath)
 		if err != nil {
-			panic(err)
-		}
-		spew.Dump(smtpCfg)
-		secretCfg, err := config.LoadSecret("C:\\Users\\dixon\\Go\\src\\github.com\\gophergala2016\\Pulse\\pulse\\cmd\\pulse\\secret.toml")
-		if err != nil {
-			panic(err)
-		}
-		spew.Dump(secretCfg)
-		cfg, err := config.Load("C:\\Users\\dixon\\Go\\src\\github.com\\gophergala2016\\Pulse\\pulse\\cmd\\pulse\\PulseConfig.toml")
-		if err != nil {
-			panic(err)
+			panic(fmt.Errorf("Could not load the config.\n %v", err))
 		}
 		spew.Dump(cfg)
 		pulse.Run(stdIn, printFunc)
-		stdIn <- "Hello World"
-		stdIn <- "Because Tesla"
-		stdIn <- "Why not"
-
 	} else {
 		spew.Println("Reading files from command line")
 		for _, arg := range flag.Args() {
