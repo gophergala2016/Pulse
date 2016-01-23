@@ -13,36 +13,33 @@ import (
 
 var (
 	def         bool
-	smtpPath    string
-	cfgPath     string
-	filePath    string
+	outputFile  string
 	buffStrings []string
+	logList     []string
 )
 
 func init() {
 	flag.BoolVar(&def, "d", false, "Turn on default mode")
-	flag.StringVar(&smtpPath, "smtp", "SMTP.toml", "Config location of SMTP.toml")
-	flag.StringVar(&cfgPath, "cfg", "PulseConfig.toml", "Config locaton of PulseConfig.toml")
-	flag.StringVar(&filePath, "o", "PulseOutput.txt", "Where to put the output file")
 	flag.Parse()
 
-	if _, err := os.Stat(cfgPath); os.IsNotExist(err) {
-		panic(fmt.Errorf("Could not find %s", cfgPath))
+	cfg, err := config.Load()
+	if err != nil {
+		panic(fmt.Errorf("Could not load the config.\n %v", err))
 	}
+
+	logList = cfg.LogList
+	outputFile = cfg.OutputFile
 }
 
 func main() {
 	if len(flag.Args()) == 0 && !def {
 		startAPI()
 	} else if def {
-		cfg, err := config.Load(cfgPath)
-		if err != nil {
-			panic(fmt.Errorf("Could not load the config.\n %v", err))
-		}
-		if len(cfg.LogList) == 0 {
+
+		if len(logList) == 0 {
 			panic(fmt.Errorf("Must supply a list of log files in the config."))
 		}
-		startPulse(cfg.LogList)
+		startPulse(logList)
 	} else {
 		startPulse(flag.Args())
 	}
@@ -93,6 +90,6 @@ func addToBuffer(value string) {
 }
 
 func dumpStringBuffer() {
-	file.Write(filePath, buffStrings)
+	file.Write(outputFile, buffStrings)
 	buffStrings = nil
 }

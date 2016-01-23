@@ -8,3 +8,6 @@ EmailList = [
 "AnneConley@example.org",
 "WeAreAwesome@example.org"
 ]
+
+OutputFile = "PulseOut.txt"
+SMTPConfig = "SMTP.toml"
