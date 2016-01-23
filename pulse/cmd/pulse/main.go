@@ -8,6 +8,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/gophergala2016/Pulse/pulse"
 	"github.com/gophergala2016/Pulse/pulse/config"
+	"github.com/gophergala2016/Pulse/pulse/email"
 	"github.com/gophergala2016/Pulse/pulse/file"
 )
 
@@ -52,9 +53,9 @@ func startPulse(filenames []string) {
 	checkList(filenames)
 	stdIn := make(chan string)
 	defer func() {
-		dumpStringBuffer()
+		email.DumpBuffer()
 	}()
-	pulse.Run(stdIn, addToBuffer)
+	pulse.Run(stdIn, email.Send)
 	for _, filename := range filenames {
 		line := make(chan string)
 		file.Read(filename, line)
@@ -71,16 +72,4 @@ func checkList(filenames []string) {
 			panic(err)
 		}
 	}
-}
-
-func addToBuffer(value string) {
-	buffStrings = append(buffStrings, value)
-	if len(buffStrings) > 10 {
-		dumpStringBuffer()
-	}
-}
-
-func dumpStringBuffer() {
-	file.Write(outputFile, buffStrings)
-	buffStrings = nil
 }

@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/smtp"
-	"os"
 	"strconv"
 
 	"github.com/gophergala2016/Pulse/pulse/config"
+	"github.com/gophergala2016/Pulse/pulse/file"
 	"github.com/mailgun/mailgun-go"
 )
 
@@ -27,6 +27,7 @@ var mGun *config.SecretConfig
 var smtpConfig *config.SMTPConfig
 var emailList []string
 var outputFile string
+var stringBuffer []string
 
 var (
 	emailOption     = -1
@@ -149,24 +150,16 @@ func fireJSONOutput(body string) {
 		return
 	}
 
-	newLine := true
-	var f *os.File
-	f, err = os.OpenFile(outputFile, os.O_APPEND|os.O_WRONLY, 0600)
-	if err != nil {
-		f, err = os.Create(outputFile)
-		if err != nil {
-			fmt.Println("Failed to create json alert file")
-			return
-		}
-		newLine = false
+	stringBuffer = append(stringBuffer, string(val))
+	if len(stringBuffer) > 9 {
+		DumpBuffer()
 	}
-	defer f.Close()
+}
 
-	if newLine {
-		val = []byte(string(val) + "\n")
-	}
-	if _, err = f.WriteString(string(val)); err != nil {
-		fmt.Println("Failed to write json alert to file")
-		return
+//DumpBuffer clears out the string buffer (useful for clean shutdowns)
+func DumpBuffer() {
+	if emailOption == jsonSend {
+		file.Write(outputFile, stringBuffer)
+		stringBuffer = nil
 	}
 }
