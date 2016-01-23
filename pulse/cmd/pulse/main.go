@@ -7,15 +7,18 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/gophergala2016/Pulse/pulse"
+	"github.com/gophergala2016/Pulse/pulse/config"
 )
 
 var (
-	def bool
-	api bool
+	def  bool
+	api  bool
+	smtp string
 )
 
 func init() {
 	flag.BoolVar(&def, "d", false, "Turn on default mode")
+	flag.StringVar(&smtp, "smtp", "SMTP.toml", "Config location of SMTP.toml")
 	flag.Parse()
 }
 
@@ -34,6 +37,11 @@ func startAPI() {
 func startPulse() {
 	var stdIn = make(chan string)
 	if def {
+		cfg, err := config.LoadSMTP(smtp)
+		if err != nil {
+			panic(err)
+		}
+		spew.Dump(cfg)
 		pulse.Run(stdIn, printFunc)
 		stdIn <- "Hello World"
 		stdIn <- "Because Tesla"
