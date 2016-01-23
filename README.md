@@ -17,3 +17,4 @@ Pulse will read any log file (text document containing logs) and learn it's patt
   - [ ] Use Mailgun's API to send emails
   - [ ] Validate User's Email using Mailgun
   - [ ] Store keys securely
+- [ ] Create the API
