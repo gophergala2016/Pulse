@@ -1,0 +1,210 @@
+<!doctype html>
+<!-- The Time Machine GitHub pages theme was designed and developed by Jon Rohan, on Feb 7, 2012. -->
+<!-- Follow him for fun. http://twitter.com/jonrohan. Tail his code on https://github.com/jonrohan -->
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+  <link rel="stylesheet" href="stylesheets/stylesheet.css" media="screen">
+  <link rel="stylesheet" href="stylesheets/github-dark.css">
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+  <script type="text/javascript" src="javascripts/script.js"></script>
+
+  <title>Pulse</title>
+  <meta name="description" content="Machine Learning for your Logs!!!">
+
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+</head>
+
+<body>
+
+  <div class="wrapper">
+    <header>
+      <h1 class="title">Pulse</h1>
+    </header>
+    <div id="container">
+      <p class="tagline">Machine Learning for your Logs!!!</p>
+      <div id="main" role="main">
+        <div class="download-bar">
+        <div class="inner">
+          <a href="https://github.com/gophergala2016/Pulse/tarball/master" class="download-button tar"><span>Download</span></a>
+          <a href="https://github.com/gophergala2016/Pulse/zipball/master" class="download-button zip"><span>Download</span></a>
+          <a href="https://github.com/gophergala2016/Pulse" class="code">View Pulse on GitHub</a>
+        </div>
+        <span class="blc"></span><span class="trc"></span>
+        </div>
+        <article class="markdown-body">
+          <h1>
+<a id="pulse" class="anchor" href="#pulse" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Pulse</h1>
+
+<p>Log pulse learns from your log files. It uses a machine learning algorithm that Michael Dropps came up with. It is a go package that can be consumed and used for use for anyone that wants to use it. The package itself just reads lines of strings and returns what it thinks is out of place. That way when you are trying to find that error in your logs, you don't spend hours searching and looking. We have made a simple application around it to show case it's ability.</p>
+
+<p>The application is simple. If you run it with no commands it will listen on whatever port is specified in the <code>PulseConfig.toml</code> file. It is listening for any log server willing to give us log lines that are then passed to the algorithm. You can setup an SMTP server to be able to let our application email you if we find anything out of the unusual. But if you use the <code>-d</code> flag, for default, it will read what ever log files that already exist and are mapped to using the <code>PulseConfig.toml</code>.</p>
+
+<p>Not enough what if you don't want to edit the config file every time. Then just pass in file names as arguments like so <code>LogPulse somefile.log yetAnotherLog.log</code>. It will read from both and let you know something is up.</p>
+
+<p>You don't have an SMTP server? Log Pulse will output all unusual entries into an output file that you specified in the config.</p>
+
+<h2>
+<a id="install" class="anchor" href="#install" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Install</h2>
+
+<p>Installing is as simple as:</p>
+
+<p><code>go get http://github.com/gophergala2016/Pulse/pulse/cmd/pulse</code></p>
+
+<h3>
+<a id="pulse-config" class="anchor" href="#pulse-config" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Pulse Config</h3>
+
+<p>The <code>PulseConfig.toml</code> needs to be located in the same directory as your executable. The file should look similar to this:</p>
+
+<pre><code>LogList = [
+"demoData/kern.log.1",
+"demoData/kern.log.2"
+]
+
+EmailList = [
+"someuser@example.org",
+"AnneConley@example.org",
+"WeAreAwesome@example.org"
+]
+
+OutputFile = "PulseOut.txt"
+SMTPConfig = "SMTP.toml"
+
+Port = 8080
+</code></pre>
+
+<p><code>LogList</code> is a list of strings. This is where the log files are located that you want pulse to read.</p>
+
+<p><code>EmailList</code> is also a list of strings. But this is everyone that you want to email when something is unusual</p>
+
+<p><code>OutputFile</code> is just a string. It is where the emails are sent if you do not setup an SMTP server (don't have SMTPConf file).</p>
+
+<p><code>SMTPConfig</code> is the location of you SMTP credentials (explained below).</p>
+
+<p><code>Port</code> is the port on which the API server will listen on.</p>
+
+<h3>
+<a id="smtp-config" class="anchor" href="#smtp-config" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>SMTP Config</h3>
+
+<p>The <code>SMTP.toml</code> can be anywhere you want it as long as the application can read the file. It is where all the required information is to send email to the SMTP server. It should look like:</p>
+
+<pre><code>[Server]
+Host = "smtp.server.com"
+Port = 25
+
+[User]
+UserName = "user@server.com"
+PassWord = "LovelyPawword"
+</code></pre>
+
+<p><code>[Server]</code> is a table with <code>Host</code> and <code>Port</code></p>
+
+<ul>
+<li>
+<code>Host</code> is the where the server is listening to receive emails to send.</li>
+<li>
+<code>Port</code> is the port on which the server is listening</li>
+</ul>
+
+<p><code>[User]</code> is also a table but with <code>UserName</code> and <code>PassWord</code></p>
+
+<ul>
+<li>
+<code>UserName</code> is the email address at which the email is sending from.</li>
+<li>
+<code>PassWord</code> is the password for the user that is sending the email</li>
+</ul>
+
+<h2>
+<a id="as-a-package" class="anchor" href="#as-a-package" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>As a package</h2>
+
+<p>To use the algorithm just import the package as such!</p>
+
+<p><code>import "github.com/gophergala2016/Pulse/pulse"</code></p>
+
+<p>This package exposes the <code>Run(chan string, func(string))</code> function. You just need to create a channel that you are going to use. It does require that it is passed in line by line as well. The <code>func(string)</code> is a function that is called whenever an unusual string comes by. It is highly recommended that if this is being written to a file to buffer a few strings before you write. Then when you have read all strings dump the rest of the buffer in the file.</p>
+
+<h2>
+<a id="team" class="anchor" href="#team" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Team</h2>
+
+<ul>
+<li>Josh Suggs <a href="https://github.com/joshua">Github</a>
+</li>
+<li>Michael Dropps <a href="https://github.com/michaeldropps">Github</a>
+</li>
+<li>Miguel Espinoza <a href="https://github.com/miguelespinoza">Github</a>
+</li>
+<li>Will Dixon <a href="https://github.com/dixonwille">Github</a>
+</li>
+</ul>
+
+<h2>
+<a id="todo" class="anchor" href="#todo" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TODO</h2>
+
+<ul>
+<li>[ ] Create Algorithm
+
+<ul>
+<li>[ ] DumpPattern</li>
+<li>[ ] LoadPattern</li>
+</ul>
+</li>
+<li>[x] Read Config values
+
+<ul>
+<li>[x] Files</li>
+<li>[x] Read a log file on Hard Drive</li>
+<li>[x] Write to a file to save outstanding logs</li>
+</ul>
+</li>
+<li>[x] Be able to send emails
+
+<ul>
+<li>[x] Use Mailgun's API to send emails</li>
+<li>[x] Validate User's Email using Mailgun</li>
+<li>[x] Store keys securely</li>
+</ul>
+</li>
+<li>[ ] Create the API
+
+<ul>
+<li>[ ] POST: log string</li>
+<li>[ ] POST: file</li>
+</ul>
+</li>
+<li>[ ] Create Webpage
+
+<ul>
+<li>[ ] Consume the API</li>
+<li>[ ] Video of how it works</li>
+<li>[ ] Static content describing the application</li>
+<li>[ ] Support links</li>
+</ul>
+</li>
+</ul>
+        </article>
+      </div>
+    </div>
+    <footer>
+      <div class="owner">
+      <p><a href="https://github.com/gophergala2016" class="avatar"><img src="https://avatars3.githubusercontent.com/u/16773106?v=3&amp;s=60" width="48" height="48"></a> <a href="https://github.com/gophergala2016">gophergala2016</a> maintains <a href="https://github.com/gophergala2016/Pulse">Pulse</a></p>
+
+
+      </div>
+      <div class="creds">
+        <small>This page generated using <a href="https://pages.github.com/">GitHub Pages</a><br>theme by <a href="https://twitter.com/jonrohan/">Jon Rohan</a></small>
+      </div>
+    </footer>
+  </div>
+  <div class="current-section">
+    <a href="#top">Scroll to top</a>
+    <a href="https://github.com/gophergala2016/Pulse/tarball/master" class="tar">tar</a><a href="https://github.com/gophergala2016/Pulse/zipball/master" class="zip">zip</a><a href="" class="code">source code</a>
+    <p class="name"></p>
+  </div>
+
+  
+</body>
+</html>
