@@ -21,8 +21,8 @@ type token struct {
 }
 
 type pattern struct {
-	tokens    []token
-	frequency float64
+	tokens     []token
+	numMatches int64
 }
 
 type vertex struct {
@@ -42,9 +42,13 @@ type distArray []vertexDistance
 var input <-chan string
 var report outputFunc
 var patternCreationRate float64
+var inputsSinceLastNewPattern int64
 var unmatched []string
 var patterns []pattern
-var tokenMap [2048][]string
+
+const tokenMapSize int = 2048
+
+var tokenMap [tokenMapSize]map[*pattern]bool
 
 func (s distArray) Len() int           { return len(s) }
 func (s distArray) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
@@ -55,6 +59,13 @@ func max(a, b int) int {
 		return b
 	}
 	return a
+}
+
+func initTokenMap() {
+	fmt.Println("Initializing token map..")
+	for i := 0; i < tokenMapSize; i++ {
+		tokenMap[i] = make(map[*pattern]bool)
+	}
 }
 
 func getTokens(value string) []string {
@@ -165,6 +176,48 @@ func analyzeMatrix(matrix [][]int, vertices []vertex) (bool, []vertex) {
 	return len(tokens) > 0, tokens
 }
 
+func updateTokenMap(words []token, ref *pattern) {
+	for i := range words {
+		if words[i].variable {
+			continue
+		}
+
+		chars := []rune(words[i].word)
+		sum := 0
+		for j := range chars {
+			value := int(chars[j])
+			sum += value
+		}
+
+		sum = sum % tokenMapSize
+
+		var pm = tokenMap[sum]
+		pm[ref] = true
+	}
+
+	fmt.Println("Token map updated with pattern...")
+}
+
+func patternsFromToken(word string) []*pattern {
+	chars := []rune(word)
+	sum := 0
+	for i := range chars {
+		value := int(chars[i])
+		sum += value
+	}
+
+	sum = sum % tokenMapSize
+	var pm = tokenMap[sum]
+	keys := make([]*pattern, 0, len(pm))
+	for k := range pm {
+		if pm[k] == true {
+			keys = append(keys, k)
+		}
+	}
+
+	return keys
+}
+
 func findPattern(shortTokens []string, longTokens []string) bool {
 	foundPattern := false
 	var vertices []vertex
@@ -210,11 +263,12 @@ func findPattern(shortTokens []string, longTokens []string) bool {
 		fmt.Println("Found a pattern...")
 		var p pattern
 
-		lastPoint := vertex{0, 0, 0}
+		lastPoint := vertex{-1, -1, 0}
 		for i := range vertices {
+			var skippedBeginning = i == 0 && vertices[i].x != 0 && vertices[i].y != 0
 			var vertex = vertices[i]
 			var distance = (vertex.x - lastPoint.x) + (vertex.y - lastPoint.y)
-			if distance <= 1 {
+			if distance <= 2 && !skippedBeginning {
 				lastPoint = vertex
 				text := shortTokens[lastPoint.x]
 				p.tokens = append(p.tokens, token{text, false, true, nil})
@@ -254,11 +308,22 @@ func findPattern(shortTokens []string, longTokens []string) bool {
 				//add static token to sequence
 				p.tokens = append(p.tokens, token{text, false, true, nil})
 			}
-			fmt.Printf("%v \n", vertex)
+			//fmt.Printf("%v \n", vertex)
 		}
+
+		p.numMatches = 1
+		patterns = append(patterns, p)
+
+		var reference = &p
+		updateTokenMap(p.tokens, reference)
+
 		fmt.Printf("Pattern: %v \n", p)
 	}
 	return foundPattern
+}
+
+func matchInputToPattern(p pattern, words []string) bool {
+	return false
 }
 
 func analyze(line string) {
@@ -267,33 +332,62 @@ func analyze(line string) {
 	patternFound := false
 
 	//search for existing pattern using token map
+	var tokenMatches = make(map[*pattern]int)
+	var lineTokens = getTokens(line)
+	for i := range lineTokens {
+		var patterns = patternsFromToken(lineTokens[i])
+		for j := range patterns {
+			var p = patterns[j]
+			tokenMatches[p] = tokenMatches[p] + 1
+		}
+	}
+
+	var mostLikelyPattern *pattern
+	var tokensInCommon int
+
+	for k := range tokenMatches {
+		if tokenMatches[k] > tokensInCommon {
+			tokensInCommon = tokenMatches[k]
+			mostLikelyPattern = k
+		}
+	}
+
+	if float64(tokensInCommon)/float64(len(lineTokens)) >= 0.5 {
+		fmt.Println("Pattern found using token map...comparing..")
+		fmt.Printf("Testing input against pattern: %v", *mostLikelyPattern)
+		patternFound = matchInputToPattern(*mostLikelyPattern, lineTokens)
+	}
 
 	//if no pattern found, compare to unmatched lines, see if a new pattern can be detected
-	for i := range unmatched {
-		var compare = unmatched[i]
-		var distance = ld(line, compare)
-		var maxLength = max(len(line), len(compare))
-		var score = float64(maxLength-distance) / float64(maxLength)
-		if score > maxScore {
-			maxScore = score
-			index = i
-		}
-	}
-
-	if maxScore >= 0.5 {
-		report("Looking for pattern...")
-		var lineTokens = getTokens(line)
-		var unmatchedTokens = getTokens(unmatched[index])
-		if len(lineTokens) < len(unmatchedTokens) {
-			patternFound = findPattern(lineTokens, unmatchedTokens)
-		} else {
-			patternFound = findPattern(unmatchedTokens, lineTokens)
-		}
-	}
-
 	if !patternFound {
-		unmatched = append(unmatched, line)
-		report("Added line to unmatched")
+		for i := range unmatched {
+			var compare = unmatched[i]
+			var distance = ld(line, compare)
+			var maxLength = max(len(line), len(compare))
+			var score = float64(maxLength-distance) / float64(maxLength)
+			if score > maxScore {
+				maxScore = score
+				index = i
+			}
+		}
+
+		if maxScore >= 0.5 {
+			fmt.Println("Looking for pattern...")
+			//var lineTokens = getTokens(line)
+			var unmatchedTokens = getTokens(unmatched[index])
+			if len(lineTokens) < len(unmatchedTokens) {
+				patternFound = findPattern(lineTokens, unmatchedTokens)
+			} else {
+				patternFound = findPattern(unmatchedTokens, lineTokens)
+			}
+		}
+
+		if !patternFound {
+			unmatched = append(unmatched, line)
+			fmt.Println("Added line to unmatched")
+		} else { //remove unmatched line from unmatched slice
+			unmatched = append(unmatched[:index], unmatched[index+1:]...)
+		}
 	}
 }
 
@@ -333,8 +427,13 @@ func ld(s, t string) int {
 func Run(in <-chan string, out outputFunc) {
 	input = in
 	report = out
+	initTokenMap()
 	analyze("monkey x [michaeld] Hello World")
 	analyze("monkey x y x [bob] Hello World")
+	analyze("Harry is a bad donkey.")
+	analyze("Martin is a bad donkey.")
+	analyze("monkey x [harrison] Hello World!")
+	analyze("John is a bad donkey.")
 	/*go func() {
 		for value := range in {
 			analyze(value)
