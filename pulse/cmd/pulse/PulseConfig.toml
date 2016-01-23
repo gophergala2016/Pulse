@@ -1,0 +1,10 @@
+LogList = [
+"C:\\Absolute\\Path\\To\\Log.txt",
+"..\\..\\Can\\Be\\Relative\\Log.txt",
+]
+
+EmailList = [
+"someuser@example.org",
+"AnneConley@example.org",
+"WeAreAwesome@example.org"
+]

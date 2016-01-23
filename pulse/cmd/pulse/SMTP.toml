@@ -1,0 +1,7 @@
+[Server]
+Host = "smtp.mailgun.org"
+Port = 25
+
+[User]
+UserName = "user@mailgun.org"
+PassWord = "P@s$w0rd"
