@@ -37,7 +37,17 @@ func startAPI() {
 func startPulse() {
 	var stdIn = make(chan string)
 	if def {
-		cfg, err := config.LoadSMTP(smtp)
+		smtpCfg, err := config.LoadSMTP("C:\\Users\\dixon\\Go\\src\\github.com\\gophergala2016\\Pulse\\pulse\\cmd\\pulse\\SMTP.toml")
+		if err != nil {
+			panic(err)
+		}
+		spew.Dump(smtpCfg)
+		secretCfg, err := config.LoadSecret("C:\\Users\\dixon\\Go\\src\\github.com\\gophergala2016\\Pulse\\pulse\\cmd\\pulse\\secret.toml")
+		if err != nil {
+			panic(err)
+		}
+		spew.Dump(secretCfg)
+		cfg, err := config.Load("C:\\Users\\dixon\\Go\\src\\github.com\\gophergala2016\\Pulse\\pulse\\cmd\\pulse\\PulseConfig.toml")
 		if err != nil {
 			panic(err)
 		}

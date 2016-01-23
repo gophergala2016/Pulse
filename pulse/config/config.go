@@ -1,13 +1,11 @@
 package config
 
-import (
-	"fmt"
-
-	"github.com/BurntSushi/toml"
-)
+import "github.com/BurntSushi/toml"
 
 //Configuration is the main configurations for the application
 type Configuration struct {
+	LogList   []string `toml:"LogList"`
+	EmailList []string `toml:"EmailList"`
 }
 
 //SMTPConfig is the configurations for a personal SMTP server a user would like to use
@@ -30,11 +28,17 @@ type User struct {
 
 //SecretConfig is the configurations to hold the keys for MailGun
 type SecretConfig struct {
+	PrivateKey string `toml:"PrivateKey"`
+	PublicKey  string `toml:"PublicKey"`
 }
 
 //Load returns the main configuration
 func Load(filename string) (*Configuration, error) {
-	return nil, fmt.Errorf("Something went wrong")
+	cfg := &Configuration{}
+	if _, err := toml.DecodeFile(filename, cfg); err != nil {
+		return nil, err
+	}
+	return cfg, nil
 }
 
 //LoadSMTP loads the settings for the smtp server
@@ -48,5 +52,9 @@ func LoadSMTP(filename string) (*SMTPConfig, error) {
 
 //LoadSecret loads the keys for Mailgun
 func LoadSecret(filename string) (*SecretConfig, error) {
-	return nil, fmt.Errorf("Something went wrong")
+	cfg := &SecretConfig{}
+	if _, err := toml.DecodeFile(filename, cfg); err != nil {
+		return nil, err
+	}
+	return cfg, nil
 }
