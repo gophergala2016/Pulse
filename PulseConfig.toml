@@ -1,5 +1,6 @@
 LogList = [
-"demoData/log20150331.csv"
+"demoData/kern.log.1",
+"demoData/kern.log.2"
 ]
 
 EmailList = [
