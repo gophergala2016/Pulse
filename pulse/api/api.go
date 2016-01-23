@@ -1,12 +1,14 @@
 package router
 
 import (
-	"Pulse/pulse"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"path/filepath"
 
+	"github.com/gophergala2016/Pulse/pulse"
+	"github.com/gophergala2016/Pulse/pulse/email"
 	"github.com/gophergala2016/Pulse/pulse/file"
 )
 
@@ -75,30 +77,40 @@ func SendFile(w http.ResponseWriter, r *http.Request) {
 
 	defer f.Close()
 
+	decoder := json.NewDecoder(r.Body)
+	var body struct {
+		Email string `json:"email"`
+	}
+
+	err = decoder.Decode(&body)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		result, _ := json.Marshal(Result{400, "bad request"})
+		io.WriteString(w, string(result))
+		return
+	}
+
+	extension := filepath.Ext(header.Filename)
+	filename := header.Filename[0 : len(header.Filename)-len(extension)]
+
 	stdIn := make(chan string)
-	defer func() {
-		dumpStringBuffer()
-	}()
-	pulse.Run(stdIn, addToBuffer)
+	email.ByPassMail = true // Needs to bypass emails and store in JSON
+	email.OutputFile = filename + ".json"
+	email.EmailList = []string{body.Email}
+	pulse.Run(stdIn, email.Send)
+
 	line := make(chan string)
 	file.StreamRead(f, line)
 	for l := range line {
+		if l == "EOF" {
+			email.ByPassMail = false
+			// Once EOF, time to send email from cache JSON storage
+			go email.SendFromCache(email.OutputFile)
+			continue
+		}
 		stdIn <- l
 	}
 	close(stdIn)
 
-	fmt.Fprintf(w, "File uploaded successfully : ")
-	fmt.Fprintf(w, header.Filename)
-}
-
-func addToBuffer(value string) {
-	buffStrings = append(buffStrings, value)
-	if len(buffStrings) > 10 {
-		dumpStringBuffer()
-	}
-}
-
-func dumpStringBuffer() {
-	file.Write(outputFile, buffStrings)
-	buffStrings = nil
+	fmt.Fprintf(w, "Pattern found and saving!")
 }

@@ -25,13 +25,19 @@ type JSONAlert struct {
 
 var mGun *config.SecretConfig
 var smtpConfig *config.SMTPConfig
-var emailList []string
-var outputFile string
+
+// EmailList : contains a list of all the emails used to for sending
+var EmailList []string
+
+// OutputFile may change if email is called via an API
+var OutputFile string
 var stringBuffer []string
 
 var (
 	emailOption     = -1
 	pulseConfigFail = false
+	// ByPassMail : used to send straight to JSON
+	ByPassMail = false
 )
 
 /* initialize email service used for notifications
@@ -40,6 +46,10 @@ var (
 3. Send to JSON
 */
 func init() {
+	if ByPassMail {
+		emailOption = jsonSend
+		return
+	}
 	val, err := config.Load()
 	if err != nil {
 		fmt.Println("Failed  to load Main config file")
@@ -47,8 +57,8 @@ func init() {
 	}
 
 	if !pulseConfigFail {
-		emailList = val.EmailList
-		outputFile = val.OutputFile
+		EmailList = val.EmailList
+		OutputFile = val.OutputFile
 	}
 
 	mGun, err = config.LoadSecret()
@@ -64,6 +74,18 @@ func init() {
 		return
 	}
 	emailOption = mailGunSend
+}
+
+// SendFromCache : sends email via MailGun, smtp server, or simply a JSON file but loads body from cache
+func SendFromCache(filename string) {
+	var body string
+
+	line := make(chan string)
+	file.Read(filename, line)
+	for l := range line {
+		body += l
+	}
+	Send(body)
 }
 
 // Send : sends email via MailGun, smtp server, or simply a JSON file
@@ -90,7 +112,7 @@ func Send(message string) {
 func fireMailGun(body string) {
 	gun := mailgun.NewMailgun(mGun.Domain, mGun.PrivateKey, mGun.PublicKey)
 
-	for _, email := range emailList { // Get Addresses from PulseConfig
+	for _, email := range EmailList { // Get Addresses from PulseConfig
 		check, _ := gun.ValidateEmail(email)
 		if check.IsValid {
 			m := mailgun.NewMessage(
@@ -119,7 +141,7 @@ func fireSMTPMessage(body string) {
 		smtpConfig.Server.Host,
 	)
 
-	for _, email := range emailList { // Get Addresses from PulseConfig
+	for _, email := range EmailList { // Get Addresses from PulseConfig
 
 		to := []string{email}
 		msg := []byte("To: " + email + ":\r\n" +
@@ -159,7 +181,7 @@ func fireJSONOutput(body string) {
 //DumpBuffer clears out the string buffer (useful for clean shutdowns)
 func DumpBuffer() {
 	if emailOption == jsonSend {
-		file.Write(outputFile, stringBuffer)
+		file.Write(OutputFile, stringBuffer)
 		stringBuffer = nil
 	}
 }

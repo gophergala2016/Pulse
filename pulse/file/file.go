@@ -32,6 +32,8 @@ func StreamRead(reader multipart.File, lineOut chan<- string) {
 		for scanner.Scan() {
 			lineOut <- scanner.Text()
 		}
+
+		lineOut <- "EOF"
 	}()
 }
 
