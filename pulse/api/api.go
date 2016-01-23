@@ -1,11 +1,13 @@
 package router
 
 import (
+	"Pulse/pulse"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
-	"os"
+
+	"github.com/gophergala2016/Pulse/pulse/file"
 )
 
 // Result : is used for ResponseWriter in handlers
@@ -13,6 +15,8 @@ type Result struct {
 	Status  int    `json:"status"`
 	Message string `json:"message"`
 }
+
+var buffStrings []string
 
 // Start : will start the REST API
 func Start() {
@@ -60,7 +64,7 @@ func SendFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	file, header, err := r.FormFile("file")
+	f, header, err := r.FormFile("file")
 
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
@@ -69,24 +73,32 @@ func SendFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	defer file.Close()
+	defer f.Close()
 
-	out, err := os.Create("/tmp/uploadedfile")
-	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		result, _ := json.Marshal(Result{400, "Unable to create the file for writing."})
-		io.WriteString(w, string(result))
-		return
+	stdIn := make(chan string)
+	defer func() {
+		dumpStringBuffer()
+	}()
+	pulse.Run(stdIn, addToBuffer)
+	line := make(chan string)
+	file.StreamRead(f, line)
+	for l := range line {
+		stdIn <- l
 	}
-
-	defer out.Close()
-
-	// write the content from POST to the file
-	_, err = io.Copy(out, file)
-	if err != nil {
-		fmt.Fprintln(w, err)
-	}
+	close(stdIn)
 
 	fmt.Fprintf(w, "File uploaded successfully : ")
 	fmt.Fprintf(w, header.Filename)
+}
+
+func addToBuffer(value string) {
+	buffStrings = append(buffStrings, value)
+	if len(buffStrings) > 10 {
+		dumpStringBuffer()
+	}
+}
+
+func dumpStringBuffer() {
+	file.Write(outputFile, buffStrings)
+	buffStrings = nil
 }
