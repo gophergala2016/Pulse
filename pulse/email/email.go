@@ -1,13 +1,13 @@
 package email
 
 import (
-	"Pulse/pulse/config"
 	"encoding/json"
 	"fmt"
 	"net/smtp"
 	"os"
 	"strconv"
 
+	"github.com/gophergala2016/Pulse/pulse/config"
 	"github.com/mailgun/mailgun-go"
 )
 
@@ -26,9 +26,9 @@ type JSONAlert struct {
 var mGun *config.SecretConfig
 var smtpConfig *config.SMTPConfig
 var emailList []string
+var outputFile string
 
 var (
-	mailGunConfig   = "secret.toml"
 	emailOption     = -1
 	pulseConfigFail = false
 )
@@ -47,6 +47,7 @@ func init() {
 
 	if !pulseConfigFail {
 		emailList = val.EmailList
+		outputFile = val.OutputFile
 	}
 
 	mGun, err = config.LoadSecret()
@@ -148,12 +149,11 @@ func fireJSONOutput(body string) {
 		return
 	}
 
-	var filename = "./log/alert.json"
 	newLine := true
 	var f *os.File
-	f, err = os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, 0600)
+	f, err = os.OpenFile(outputFile, os.O_APPEND|os.O_WRONLY, 0600)
 	if err != nil {
-		f, err = os.Create(filename)
+		f, err = os.Create(outputFile)
 		if err != nil {
 			fmt.Println("Failed to create json alert file")
 			return

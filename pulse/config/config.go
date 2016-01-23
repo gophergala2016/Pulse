@@ -4,8 +4,11 @@ import "github.com/BurntSushi/toml"
 
 //Configuration is the main configurations for the application
 type Configuration struct {
-	LogList   []string `toml:"LogList"`
-	EmailList []string `toml:"EmailList"`
+	LogList    []string `toml:"LogList"`
+	EmailList  []string `toml:"EmailList"`
+	OutputFile string   `toml:"OutputFile"`
+	SMTPConfig string   `toml:"SMTPConfig"`
+	Port       int      `toml:"Port"`
 }
 
 //SMTPConfig is the configurations for a personal SMTP server a user would like to use
@@ -35,22 +38,29 @@ type SecretConfig struct {
 }
 
 var (
-	mailGunConfig = "../cmd/pulse/MailGun.toml"
+	mailGunConfig = "MailGun.toml"
+	pulseConfig   = "PulseConfig.toml"
+	smtpConfig    string
 )
 
 //Load returns the main configuration
-func Load(pulseConfig string) (*Configuration, error) {
+func Load() (*Configuration, error) {
+
 	cfg := &Configuration{}
 	if _, err := toml.DecodeFile(pulseConfig, cfg); err != nil {
-		return nil, err
+		panic(err)
 	}
 	return cfg, nil
 }
 
 //LoadSMTP loads the settings for the smtp server
-func LoadSMTP(smtpConfig string) (*SMTPConfig, error) {
+func LoadSMTP() (*SMTPConfig, error) {
+	maincfg, err := Load()
+	if err != nil {
+		panic(err)
+	}
 	cfg := &SMTPConfig{}
-	if _, err := toml.DecodeFile(smtpConfig, cfg); err != nil {
+	if _, err := toml.DecodeFile(maincfg.SMTPConfig, cfg); err != nil {
 		return nil, err
 	}
 	return cfg, nil
