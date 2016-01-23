@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/signal"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/gophergala2016/Pulse/pulse"
@@ -33,6 +34,7 @@ func init() {
 }
 
 func main() {
+
 	if len(flag.Args()) == 0 && !def {
 		startAPI()
 	} else if def {
@@ -52,9 +54,19 @@ func startAPI() {
 func startPulse(filenames []string) {
 	checkList(filenames)
 	stdIn := make(chan string)
-	defer func() {
-		email.DumpBuffer()
-	}()
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	// On keyboard interrup cleanup the program
+	go func(i chan string) {
+		for _ = range c {
+			fmt.Println("Exiting for Keyboard Interupt")
+			close(i)
+			email.DumpBuffer()
+			os.Exit(0)
+		}
+	}(stdIn)
+
 	pulse.Run(stdIn, email.Send)
 	for _, filename := range filenames {
 		line := make(chan string)
