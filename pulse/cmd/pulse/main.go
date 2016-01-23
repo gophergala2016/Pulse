@@ -3,49 +3,41 @@ package main
 import (
 	"flag"
 	"os"
+
+	"github.com/davecgh/go-spew/spew"
 )
 
 var (
-	debug bool
-	api   bool
+	def bool
+	api bool
 )
 
 func init() {
-	flag.BoolVar(&debug, "d", false, "Turn on debug mode")
-	// so that flags are last and everything else (filenames are first)
-	// that is how the flags parse
-	permutateArgs(os.Args)
+	flag.BoolVar(&def, "d", false, "Turn on default mode")
 	flag.Parse()
 }
 
 func main() {
-	if len(flag.Args()) == 0 {
-		startAPI()
+	var stdIn = make(chan string)
+	var stdOut = make(chan string)
+	if len(os.Args[1:]) == 0 {
+		startAPI(stdIn, stdOut)
 	} else {
-		startPulse()
+		startPulse(stdIn, stdOut)
 	}
 }
 
-func startAPI() {
-
+func startAPI(stdIn, stdOut chan string) {
+	spew.Println("API Mode")
 }
 
-func startPulse() {
-
-}
-
-func permutateArgs(args []string) int {
-	args = args[1:]
-	optind := 0
-
-	for i := range args {
-		if args[i][0] == '-' {
-			tmp := args[i]
-			args[i] = args[optind]
-			args[optind] = tmp
-			optind++
+func startPulse(stdIn, stdOut chan string) {
+	if def {
+		spew.Println("Defalut Mode")
+	} else {
+		spew.Println("Reading files from command line")
+		for _, arg := range flag.Args() {
+			spew.Dump(arg)
 		}
 	}
-
-	return optind + 1
 }
