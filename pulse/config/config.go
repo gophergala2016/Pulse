@@ -8,6 +8,7 @@ type Configuration struct {
 	EmailList  []string `toml:"EmailList"`
 	OutputFile string   `toml:"OutputFile"`
 	SMTPConfig string   `toml:"SMTPConfig"`
+	Port       int      `toml:"Port"`
 }
 
 //SMTPConfig is the configurations for a personal SMTP server a user would like to use
