@@ -35,13 +35,11 @@ type SecretConfig struct {
 }
 
 var (
-	pulseConfig   = "../cmd/pulse/PulseConfig.toml"
 	mailGunConfig = "../cmd/pulse/MailGun.toml"
-	smtpConfig    = "../cmd/pulse/SMTP.toml"
 )
 
 //Load returns the main configuration
-func Load() (*Configuration, error) {
+func Load(pulseConfig string) (*Configuration, error) {
 	cfg := &Configuration{}
 	if _, err := toml.DecodeFile(pulseConfig, cfg); err != nil {
 		return nil, err
@@ -50,7 +48,7 @@ func Load() (*Configuration, error) {
 }
 
 //LoadSMTP loads the settings for the smtp server
-func LoadSMTP() (*SMTPConfig, error) {
+func LoadSMTP(smtpConfig string) (*SMTPConfig, error) {
 	cfg := &SMTPConfig{}
 	if _, err := toml.DecodeFile(smtpConfig, cfg); err != nil {
 		return nil, err
