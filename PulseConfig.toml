@@ -1,6 +1,5 @@
 LogList = [
-"C:\\Absolute\\Path\\To\\Log.txt",
-"..\\..\\Can\\Be\\Relative\\Log.txt",
+"demoData/log20150331.csv"
 ]
 
 EmailList = [

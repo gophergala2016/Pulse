@@ -66,18 +66,10 @@ func startPulse(filenames []string) {
 }
 
 func checkList(filenames []string) {
-	errChan := make(chan error)
-	go func(errChan chan error) {
-		for _, filename := range filenames {
-			if _, err := os.Stat(filename); os.IsNotExist(err) {
-				errChan <- fmt.Errorf("Could not find %s", filename)
-			}
+	for _, filename := range filenames {
+		if _, err := os.Stat(filename); os.IsNotExist(err) {
+			panic(err)
 		}
-		close(errChan)
-	}(errChan)
-
-	for err := range errChan {
-		panic(err)
 	}
 }
 
