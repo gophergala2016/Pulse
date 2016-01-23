@@ -128,7 +128,7 @@ func fireSMTPMessage(body string) {
 		err := smtp.SendMail(
 			fmt.Sprintf("%s:%s", smtpConfig.Server.Host, strconv.Itoa(smtpConfig.Server.Port)),
 			auth,
-			"sender@example.org",
+			smtpConfig.User.UserName,
 			to,
 			msg,
 		)
