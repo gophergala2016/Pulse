@@ -19,3 +19,4 @@ Pulse will read any log file (text document containing logs) and learn it's patt
 - [ ] Create the API
   - [ ] POST: log string
   - [ ] POST: file
+- [ ] Create Webpage

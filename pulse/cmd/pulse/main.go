@@ -35,7 +35,6 @@ func main() {
 	if len(flag.Args()) == 0 && !def {
 		startAPI()
 	} else if def {
-
 		if len(logList) == 0 {
 			panic(fmt.Errorf("Must supply a list of log files in the config."))
 		}
