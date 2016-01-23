@@ -37,7 +37,7 @@ func StreamRead(reader multipart.File, lineOut chan<- string) {
 
 //Write will append or create filename and write the slice of strings seperated by a new line
 func Write(filename string, lines []string) {
-	outFile, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE, 0666)
+	outFile, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 	defer outFile.Close()
 	if err != nil {
 		panic(err)

@@ -4,10 +4,12 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/signal"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/gophergala2016/Pulse/pulse"
 	"github.com/gophergala2016/Pulse/pulse/config"
+	"github.com/gophergala2016/Pulse/pulse/email"
 	"github.com/gophergala2016/Pulse/pulse/file"
 )
 
@@ -32,6 +34,7 @@ func init() {
 }
 
 func main() {
+
 	if len(flag.Args()) == 0 && !def {
 		startAPI()
 	} else if def {
@@ -51,10 +54,20 @@ func startAPI() {
 func startPulse(filenames []string) {
 	checkList(filenames)
 	stdIn := make(chan string)
-	defer func() {
-		dumpStringBuffer()
-	}()
-	pulse.Run(stdIn, addToBuffer)
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	// On keyboard interrup cleanup the program
+	go func(i chan string) {
+		for _ = range c {
+			fmt.Println("Exiting for Keyboard Interupt")
+			close(i)
+			email.DumpBuffer()
+			os.Exit(0)
+		}
+	}(stdIn)
+
+	pulse.Run(stdIn, email.Send)
 	for _, filename := range filenames {
 		line := make(chan string)
 		file.Read(filename, line)
@@ -71,16 +84,4 @@ func checkList(filenames []string) {
 			panic(err)
 		}
 	}
-}
-
-func addToBuffer(value string) {
-	buffStrings = append(buffStrings, value)
-	if len(buffStrings) > 10 {
-		dumpStringBuffer()
-	}
-}
-
-func dumpStringBuffer() {
-	file.Write(outputFile, buffStrings)
-	buffStrings = nil
 }
