@@ -3,5 +3,5 @@ Host = "smtp.mailgun.org"
 Port = 25
 
 [User]
-UserName = "user@mailgun.org"
-PassWord = "P@s$w0rd"
+UserName = "postmaster@logpulse.io"
+PassWord = "f983e98b7d68941bdd28ea8a1a4d83c7"
