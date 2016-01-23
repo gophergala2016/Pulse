@@ -6,7 +6,9 @@ import (
 	"os"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/gophergala2016/Pulse/pulse"
 	"github.com/gophergala2016/Pulse/pulse/config"
+	"github.com/gophergala2016/Pulse/pulse/file"
 )
 
 var (
@@ -48,6 +50,20 @@ func startAPI() {
 }
 
 func startPulse(filenames []string) {
+	stdIn := make(chan string)
+	pulse.Run(stdIn, printString)
+	checkList(filenames)
+	for _, filename := range filenames {
+		line := make(chan string)
+		file.Read(filename, line)
+		for l := range line {
+			stdIn <- l
+		}
+	}
+	close(stdIn)
+}
+
+func checkList(filenames []string) {
 	errChan := make(chan error)
 	go func(errChan chan error) {
 		for _, filename := range filenames {
@@ -63,6 +79,6 @@ func startPulse(filenames []string) {
 	}
 }
 
-func printFunc(value string) {
+func printString(value string) {
 	fmt.Println(value)
 }
