@@ -50,9 +50,9 @@ func startAPI() {
 }
 
 func startPulse(filenames []string) {
+	checkList(filenames)
 	stdIn := make(chan string)
 	pulse.Run(stdIn, printString)
-	checkList(filenames)
 	for _, filename := range filenames {
 		line := make(chan string)
 		file.Read(filename, line)
