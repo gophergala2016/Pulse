@@ -8,13 +8,12 @@ Pulse will read any log file (text document containing logs) and learn it's patt
 
 ## TODO
 - [ ] Create Algorithm
-- [ ] Read Config values
-  - [ ] Set to global values
-- [ ] Files
-  - [ ] Read a log file on Hard Drive
+- [x] Read Config values
+  - [ ] Files
+  - [x] Read a log file on Hard Drive
   - [ ] Write to a file to save outstanding logs
 - [ ] Be able to send emails
   - [ ] Use Mailgun's API to send emails
   - [ ] Validate User's Email using Mailgun
-  - [ ] Store keys securely
+  - [x] Store keys securely
 - [ ] Create the API
