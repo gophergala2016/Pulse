@@ -12,15 +12,18 @@ import (
 )
 
 var (
-	def      bool
-	smtpPath string
-	cfgPath  string
+	def         bool
+	smtpPath    string
+	cfgPath     string
+	filePath    string
+	buffStrings []string
 )
 
 func init() {
 	flag.BoolVar(&def, "d", false, "Turn on default mode")
 	flag.StringVar(&smtpPath, "smtp", "SMTP.toml", "Config location of SMTP.toml")
 	flag.StringVar(&cfgPath, "cfg", "PulseConfig.toml", "Config locaton of PulseConfig.toml")
+	flag.StringVar(&filePath, "o", "PulseOutput.txt", "Where to put the output file")
 	flag.Parse()
 
 	if _, err := os.Stat(cfgPath); os.IsNotExist(err) {
@@ -52,7 +55,10 @@ func startAPI() {
 func startPulse(filenames []string) {
 	checkList(filenames)
 	stdIn := make(chan string)
-	pulse.Run(stdIn, printString)
+	defer func() {
+		dumpStringBuffer()
+	}()
+	pulse.Run(stdIn, addToBuffer)
 	for _, filename := range filenames {
 		line := make(chan string)
 		file.Read(filename, line)
@@ -79,6 +85,14 @@ func checkList(filenames []string) {
 	}
 }
 
-func printString(value string) {
-	fmt.Println(value)
+func addToBuffer(value string) {
+	buffStrings = append(buffStrings, value)
+	if len(buffStrings) > 10 {
+		dumpStringBuffer()
+	}
+}
+
+func dumpStringBuffer() {
+	file.Write(filePath, buffStrings)
+	buffStrings = nil
 }
