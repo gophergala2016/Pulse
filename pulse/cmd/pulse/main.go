@@ -6,27 +6,40 @@ import (
 	"os"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/gophergala2016/Pulse/pulse"
 	"github.com/gophergala2016/Pulse/pulse/config"
 )
 
 var (
-	def  bool
-	api  bool
-	smtp string
+	def      bool
+	smtpPath string
+	cfgPath  string
 )
 
 func init() {
 	flag.BoolVar(&def, "d", false, "Turn on default mode")
-	flag.StringVar(&smtp, "smtp", "SMTP.toml", "Config location of SMTP.toml")
+	flag.StringVar(&smtpPath, "smtp", "SMTP.toml", "Config location of SMTP.toml")
+	flag.StringVar(&cfgPath, "cfg", "PulseConfig.toml", "Config locaton of PulseConfig.toml")
 	flag.Parse()
+
+	if _, err := os.Stat(cfgPath); os.IsNotExist(err) {
+		panic(fmt.Errorf("Could not find %s", cfgPath))
+	}
 }
 
 func main() {
-	if len(os.Args[1:]) == 0 {
+	if len(flag.Args()) == 0 && !def {
 		startAPI()
+	} else if def {
+		cfg, err := config.Load(cfgPath)
+		if err != nil {
+			panic(fmt.Errorf("Could not load the config.\n %v", err))
+		}
+		if len(cfg.LogList) == 0 {
+			panic(fmt.Errorf("Must supply a list of log files in the config."))
+		}
+		startPulse(cfg.LogList)
 	} else {
-		startPulse()
+		startPulse(flag.Args())
 	}
 }
 
@@ -34,34 +47,19 @@ func startAPI() {
 	spew.Println("API Mode")
 }
 
-func startPulse() {
-	var stdIn = make(chan string)
-	if def {
-		smtpCfg, err := config.LoadSMTP("C:\\Users\\dixon\\Go\\src\\github.com\\gophergala2016\\Pulse\\pulse\\cmd\\pulse\\SMTP.toml")
-		if err != nil {
-			panic(err)
+func startPulse(filenames []string) {
+	errChan := make(chan error)
+	go func(errChan chan error) {
+		for _, filename := range filenames {
+			if _, err := os.Stat(filename); os.IsNotExist(err) {
+				errChan <- fmt.Errorf("Could not find %s", filename)
+			}
 		}
-		spew.Dump(smtpCfg)
-		secretCfg, err := config.LoadSecret("C:\\Users\\dixon\\Go\\src\\github.com\\gophergala2016\\Pulse\\pulse\\cmd\\pulse\\secret.toml")
-		if err != nil {
-			panic(err)
-		}
-		spew.Dump(secretCfg)
-		cfg, err := config.Load("C:\\Users\\dixon\\Go\\src\\github.com\\gophergala2016\\Pulse\\pulse\\cmd\\pulse\\PulseConfig.toml")
-		if err != nil {
-			panic(err)
-		}
-		spew.Dump(cfg)
-		pulse.Run(stdIn, printFunc)
-		stdIn <- "Hello World"
-		stdIn <- "Because Tesla"
-		stdIn <- "Why not"
+		close(errChan)
+	}(errChan)
 
-	} else {
-		spew.Println("Reading files from command line")
-		for _, arg := range flag.Args() {
-			spew.Dump(arg)
-		}
+	for err := range errChan {
+		panic(err)
 	}
 }
 
