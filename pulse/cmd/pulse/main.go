@@ -2,9 +2,11 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/gophergala2016/Pulse/pulse"
 )
 
 var (
@@ -18,26 +20,33 @@ func init() {
 }
 
 func main() {
-	var stdIn = make(chan string)
-	var stdOut = make(chan string)
 	if len(os.Args[1:]) == 0 {
-		startAPI(stdIn, stdOut)
+		startAPI()
 	} else {
-		startPulse(stdIn, stdOut)
+		startPulse()
 	}
 }
 
-func startAPI(stdIn, stdOut chan string) {
+func startAPI() {
 	spew.Println("API Mode")
 }
 
-func startPulse(stdIn, stdOut chan string) {
+func startPulse() {
+	var stdIn = make(chan string)
 	if def {
-		spew.Println("Defalut Mode")
+		pulse.Run(stdIn, printFunc)
+		stdIn <- "Hello World"
+		stdIn <- "Because Tesla"
+		stdIn <- "Why not"
+
 	} else {
 		spew.Println("Reading files from command line")
 		for _, arg := range flag.Args() {
 			spew.Dump(arg)
 		}
 	}
+}
+
+func printFunc(value string) {
+	fmt.Println(value)
 }
