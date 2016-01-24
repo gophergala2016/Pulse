@@ -15,14 +15,14 @@ import (
 )
 
 var (
-	def         bool
+	runAPI      bool
 	outputFile  string
 	buffStrings []string
 	logList     []string
 )
 
 func init() {
-	flag.BoolVar(&def, "d", false, "Turn on default mode")
+	flag.BoolVar(&runAPI, "api", false, "Turn on API mode")
 	flag.Parse()
 
 	cfg, err := config.Load()
@@ -36,13 +36,13 @@ func init() {
 
 func main() {
 
-	if len(flag.Args()) == 0 && !def {
-		startAPI()
-	} else if def {
+	if len(flag.Args()) == 0 && !runAPI {
 		if len(logList) == 0 {
 			panic(fmt.Errorf("Must supply a list of log files in the config."))
 		}
 		startPulse(logList)
+	} else if runAPI {
+		startAPI()
 	} else {
 		startPulse(flag.Args())
 	}
