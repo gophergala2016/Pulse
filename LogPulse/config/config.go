@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/BurntSushi/toml"
+	"github.com/mitchellh/go-homedir"
 )
 
 //Configuration is the main configurations for the application

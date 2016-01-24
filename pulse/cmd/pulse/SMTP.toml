@@ -1,0 +1,7 @@
+[Server]
+Host = "smtp.mailgun.org"
+Port = 25
+
+[User]
+UserName = "postmaster@clemsonopoly.com"
+PassWord = "Realm123!"
