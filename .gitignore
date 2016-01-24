@@ -1,5 +1,5 @@
 pulse/cmd/pulse/MailGun.toml
 pulse/cmd/pulse/SMTP.toml
-demoData/smallkern.copy.log
+demoData/
 *.csv
 *.gz

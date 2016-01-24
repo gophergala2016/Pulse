@@ -6,8 +6,8 @@ import (
 	"net/smtp"
 	"strconv"
 
-	"github.com/gophergala2016/Pulse/pulse/config"
-	"github.com/gophergala2016/Pulse/pulse/file"
+	"github.com/gophergala2016/Pulse/LogPulse/config"
+	"github.com/gophergala2016/Pulse/LogPulse/file"
 	"github.com/mailgun/mailgun-go"
 )
 
@@ -111,10 +111,12 @@ func Send(message string) {
 	}
 }
 
+//SaveToCache takes a string and saves it to file
 func SaveToCache(message string) {
 	fireJSONOutput(message)
 }
 
+//IsValid checks to see if the email that is passed in is a valid email or not
 func IsValid(email string) bool {
 	gun := mailgun.NewMailgun(mGun.Domain, mGun.PrivateKey, mGun.PublicKey)
 

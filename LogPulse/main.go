@@ -6,23 +6,22 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/davecgh/go-spew/spew"
+	"github.com/gophergala2016/Pulse/LogPulse/api"
+	"github.com/gophergala2016/Pulse/LogPulse/config"
+	"github.com/gophergala2016/Pulse/LogPulse/email"
+	"github.com/gophergala2016/Pulse/LogPulse/file"
 	"github.com/gophergala2016/Pulse/pulse"
-	"github.com/gophergala2016/Pulse/pulse/api"
-	"github.com/gophergala2016/Pulse/pulse/config"
-	"github.com/gophergala2016/Pulse/pulse/email"
-	"github.com/gophergala2016/Pulse/pulse/file"
 )
 
 var (
-	def         bool
+	runAPI      bool
 	outputFile  string
 	buffStrings []string
 	logList     []string
 )
 
 func init() {
-	flag.BoolVar(&def, "d", false, "Turn on default mode")
+	flag.BoolVar(&runAPI, "api", false, "Turn on API mode")
 	flag.Parse()
 
 	cfg, err := config.Load()
@@ -35,14 +34,13 @@ func init() {
 }
 
 func main() {
-
-	if len(flag.Args()) == 0 && !def {
-		startAPI()
-	} else if def {
+	if len(flag.Args()) == 0 && !runAPI {
 		if len(logList) == 0 {
 			panic(fmt.Errorf("Must supply a list of log files in the config."))
 		}
 		startPulse(logList)
+	} else if runAPI {
+		startAPI()
 	} else {
 		startPulse(flag.Args())
 	}
@@ -53,7 +51,6 @@ func startAPI() {
 }
 
 func startPulse(filenames []string) {
-	spew.Dump(filenames)
 	checkList(filenames)
 	stdIn := make(chan string)
 

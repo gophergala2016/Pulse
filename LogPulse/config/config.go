@@ -1,6 +1,11 @@
 package config
 
-import "github.com/BurntSushi/toml"
+import (
+	"fmt"
+	"path/filepath"
+
+	"github.com/BurntSushi/toml"
+)
 
 //Configuration is the main configurations for the application
 type Configuration struct {
@@ -48,7 +53,13 @@ func Load() (*Configuration, error) {
 
 	cfg := &Configuration{}
 	if _, err := toml.DecodeFile(pulseConfig, cfg); err != nil {
-		panic(err)
+		home, err := homedir.Dir()
+		if err != nil {
+			panic(fmt.Errorf("Could not find %s in the executable directory and could not find home directory", pulseConfig))
+		}
+		if _, err := toml.DecodeFile(filepath.Join(home, pulseConfig), cfg); err != nil {
+			panic(fmt.Errorf("Could not find %s in the %s or executable directory", pulseConfig, home))
+		}
 	}
 	return cfg, nil
 }
