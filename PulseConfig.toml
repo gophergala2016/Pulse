@@ -6,7 +6,8 @@ LogList = [
 EmailList = [
 "someuser@example.org",
 "AnneConley@example.org",
-"WeAreAwesome@example.org"
+"WeAreAwesome@example.org",
+"espinozamiguel349@gmail.com"
 ]
 
 OutputFile = "PulseOut.txt"

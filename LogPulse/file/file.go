@@ -2,6 +2,8 @@ package file
 
 import (
 	"bufio"
+	"fmt"
+	"mime/multipart"
 	"os"
 	"strings"
 )
@@ -21,6 +23,19 @@ func Read(filename string, lineOut chan<- string) {
 		for scanner.Scan() {
 			lineOut <- scanner.Text()
 		}
+	}()
+}
+
+//StreamRead will read from io.Reader line by line and each line be returned to channel
+func StreamRead(reader multipart.File, lineOut chan<- string) {
+	go func() {
+		scanner := bufio.NewScanner(reader)
+		for scanner.Scan() {
+			val := scanner.Text()
+			fmt.Println(val)
+			lineOut <- val
+		}
+		lineOut <- "EOF"
 	}()
 }
 

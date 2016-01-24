@@ -59,7 +59,7 @@ Port = 25
 
 [User]
 UserName = "user@server.com"
-PassWord = "LovelyPawword"
+PassWord = "LovelyPassword"
 ```
 `[Server]` is a table with `Host` and `Port`
 - `Host` is the where the server is listening to receive emails to send.
@@ -76,7 +76,6 @@ To use the algorithm just import the package as such!
 
 This package exposes the `Run(chan string, func(string))` function. You just need to create a channel that you are going to use. It does require that it is passed in line by line as well. The `func(string)` is a function that is called whenever an unusual string comes by. It is highly recommended that if this is being written to a file to buffer a few strings before you write. Then when you have read all strings dump the rest of the buffer in the file.
 ## Team
-- Josh Suggs [Github](https://github.com/joshua)
 - Michael Dropps [Github](https://github.com/michaeldropps)
 - Miguel Espinoza [Github](https://github.com/miguelespinoza)
 - Will Dixon [Github](https://github.com/dixonwille)
@@ -96,7 +95,7 @@ This package exposes the `Run(chan string, func(string))` function. You just nee
 - [ ] Create the API
   - [ ] POST: log string
   - [ ] POST: file
-- [ ] Create Webpage
+- [x] Create Webpage
   - [ ] Consume the API
   - [ ] Video of how it works
   - [ ] Static content describing the application

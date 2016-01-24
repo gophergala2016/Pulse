@@ -7,10 +7,11 @@ import (
 	"os/signal"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/gophergala2016/Pulse/LogPulse/api"
+	"github.com/gophergala2016/Pulse/LogPulse/config"
+	"github.com/gophergala2016/Pulse/LogPulse/email"
+	"github.com/gophergala2016/Pulse/LogPulse/file"
 	"github.com/gophergala2016/Pulse/pulse"
-	"github.com/gophergala2016/Pulse/pulse/config"
-	"github.com/gophergala2016/Pulse/pulse/email"
-	"github.com/gophergala2016/Pulse/pulse/file"
 )
 
 var (
@@ -48,24 +49,26 @@ func main() {
 }
 
 func startAPI() {
-	spew.Println("API Mode")
+	api.Start()
 }
 
 func startPulse(filenames []string) {
+	spew.Dump(filenames)
 	checkList(filenames)
 	stdIn := make(chan string)
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	// On keyboard interrup cleanup the program
-	go func(i chan string) {
+	go func() {
 		for _ = range c {
 			fmt.Println("Exiting for Keyboard Interupt")
-			close(i)
-			email.DumpBuffer()
+			cleanUp()
 			os.Exit(0)
 		}
-	}(stdIn)
+	}()
+
+	defer cleanUp()
 
 	pulse.Run(stdIn, email.Send)
 	for _, filename := range filenames {
@@ -76,6 +79,10 @@ func startPulse(filenames []string) {
 		}
 	}
 	close(stdIn)
+}
+
+func cleanUp() {
+	email.DumpBuffer()
 }
 
 func checkList(filenames []string) {
