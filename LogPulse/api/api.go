@@ -1,4 +1,4 @@
-// Package api is to start the api to be listening on different endpoints
+// Package api is to start the api to be listening on different endpoints.
 // The API will listen on the port specified in the PulseConfig.toml.
 // There are 2 endpoints:
 // POST /log/file this will read the file line by line passing in each line to the algorithm
