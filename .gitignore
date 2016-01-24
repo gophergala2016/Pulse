@@ -1,6 +1,7 @@
 *MailGun.toml
 *SMTP.toml
 demoData/
+LogPulse/Logpulse
 *.csv
 *.gz
 *.json

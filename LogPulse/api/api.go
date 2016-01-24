@@ -223,6 +223,11 @@ func SendFile(w http.ResponseWriter, r *http.Request) {
 					fmt.Println("Failed to delete uncompressed file, please delete")
 				}
 			}
+
+			err = os.Remove(email.OutputFile)
+			if err != nil {
+				fmt.Println("Failed to delete uncompressed file, please delete")
+			}
 		}()
 	}()
 
