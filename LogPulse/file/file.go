@@ -10,14 +10,17 @@ import (
 
 //Read will read filename line by line and each line be returned to channel
 func Read(filename string, lineOut chan<- string) {
+
 	go func() {
 		inFile, err := os.Open(filename)
+
 		defer func() {
 			inFile.Close()
 			close(lineOut)
 		}()
+
 		if err != nil {
-			panic(err)
+			panic(fmt.Errorf("file.Read: %s", err))
 		}
 		scanner := bufio.NewScanner(inFile)
 		for scanner.Scan() {
@@ -44,10 +47,10 @@ func Write(filename string, lines []string) {
 	outFile, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 	defer outFile.Close()
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("file.Write: %s", err))
 	}
 	longString := strings.Join(lines, "\n") + "\n"
 	if _, err = outFile.WriteString(longString); err != nil {
-		panic(err)
+		panic(fmt.Errorf("file.Write: %s", err))
 	}
 }

@@ -52,7 +52,7 @@ func init() {
 	}
 	val, err := config.Load()
 	if err != nil {
-		fmt.Println("Failed  to load Main config file")
+		fmt.Println("email.init: Failed  to load Main config file")
 		pulseConfigFail = true
 	}
 
@@ -78,7 +78,7 @@ func init() {
 
 // SendFromCache : sends email via MailGun, smtp server, or simply a JSON file but loads body from cache
 func SendFromCache(filename string) {
-	fmt.Println("Sending from Cache")
+	fmt.Println("email.SendFromCache: Sending from Cache")
 	var body string
 
 	line := make(chan string)
@@ -92,17 +92,17 @@ func SendFromCache(filename string) {
 
 // Send : sends email via MailGun, smtp server, or simply a JSON file
 func Send(message string) {
-	fmt.Println("Send")
+	fmt.Println("email.Send: Sending")
 	switch emailOption {
 	case mailGunSend:
 		if pulseConfigFail {
-			fmt.Println("MailGun service is dependent of PulseConfig")
+			fmt.Println("email.Send: MailGun service is dependent of PulseConfig")
 			return
 		}
 		go fireMailGun(message)
 	case smtpSend:
 		if pulseConfigFail {
-			fmt.Println("SMTP client is dependent of PulseConfig")
+			fmt.Println("email.Send: SMTP client is dependent of PulseConfig")
 			return
 		}
 		go fireSMTPMessage(message)
@@ -173,7 +173,7 @@ func fireSMTPMessage(body string) {
 			msg,
 		)
 		if err != nil {
-			fmt.Printf("Failed to send to %s\n", email)
+			fmt.Printf("fireSMTPMessage: Failed to send to %s\n", email)
 		}
 	}
 }
@@ -184,7 +184,7 @@ func fireJSONOutput(body string) {
 	output := JSONAlert{"Alert! Found Anomaly in Log Files via LogPulse", body}
 	val, err := json.Marshal(output)
 	if err != nil {
-		fmt.Println("Failed to create JSON Alert")
+		fmt.Println("email.fireJSONOutput: Failed to create JSON Alert")
 		return
 	}
 
