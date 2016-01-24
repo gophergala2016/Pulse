@@ -1,5 +1,6 @@
 # Pulse
 [![GoDoc](https://godoc.org/github.com/gophergala2016/Pulse?status.svg)](https://godoc.org/github.com/gophergala2016/Pulse)
+[![Build Status](https://travis-ci.org/gophergala2016/Pulse.svg?branch=master)](https://travis-ci.org/gophergala2016/Pulse)
 
 Log pulse learns from your log files. It uses a machine learning algorithm that Michael Dropps came up with. It is a go package that can be consumed and used for use for anyone. The package itself just reads lines of strings and returns what it thinks is out of place. That way when you are trying to find that error in your logs, you don't spend hours searching and looking. We have made a simple application around it to show case it's ability.
 
@@ -76,7 +77,7 @@ PassWord = "LovelyPassword"
 `[User]` is also a table but with `UserName` and `PassWord`
 - `UserName` is the email address at which the email is sending from.
 - `PassWord` is the password for the user that is sending the email
- 
+
 ## Live Demo
 
 Checkout our live demo at [pulse.clemsonopoly.com](http://pulse.clemsonopoly.com#live-demo)
