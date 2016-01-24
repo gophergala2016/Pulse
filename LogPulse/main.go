@@ -24,9 +24,16 @@ func init() {
 	flag.BoolVar(&runAPI, "api", false, "Turn on API mode")
 	flag.Parse()
 
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println(r)
+			os.Exit(0)
+		}
+	}()
+
 	cfg, err := config.Load()
 	if err != nil {
-		panic(fmt.Errorf("Could not load the config.\n %v", err))
+		panic(fmt.Errorf("main.init: Could not load the config.\n %v", err))
 	}
 
 	logList = cfg.LogList
@@ -34,9 +41,18 @@ func init() {
 }
 
 func main() {
+	//uncomment for production
+
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println(r)
+			os.Exit(0)
+		}
+	}()
+
 	if len(flag.Args()) == 0 && !runAPI {
 		if len(logList) == 0 {
-			panic(fmt.Errorf("Must supply a list of log files in the config."))
+			panic(fmt.Errorf("main.main: Must supply a list of log files in the config"))
 		}
 		startPulse(logList)
 	} else if runAPI {
@@ -85,7 +101,7 @@ func cleanUp() {
 func checkList(filenames []string) {
 	for _, filename := range filenames {
 		if _, err := os.Stat(filename); os.IsNotExist(err) {
-			panic(err)
+			panic(fmt.Errorf("main.checkList: %s", err))
 		}
 	}
 }

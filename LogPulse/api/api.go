@@ -28,9 +28,15 @@ var buffStrings []string
 var port int
 
 func init() {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println(r)
+			os.Exit(0)
+		}
+	}()
 	val, err := config.Load()
 	if err != nil {
-		panic(fmt.Errorf("Can't start API because config is missing"))
+		panic(fmt.Errorf("API: %s", err))
 	}
 	port = val.Port
 }
