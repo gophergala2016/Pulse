@@ -448,9 +448,9 @@ func matchInputToPattern(p *pattern, words []string, input string) bool {
 }
 
 func reportAnomaly(line string) {
-	fmt.Printf("Pattern count: %v\n", len(patterns))
+	//fmt.Printf("Pattern count: %v\n", len(patterns))
 
-	fmt.Printf("Pattern creation rate: %v, rate increasing? %v", patternCreationRate, patternCreationRateIncreasing)
+	//fmt.Printf("Pattern creation rate: %v, rate increasing? %v", patternCreationRate, patternCreationRateIncreasing)
 	if (!patternCreationRateIncreasing || patternCreationRate <= 0.20) && (len(patterns) != 0) {
 		fmt.Printf("Reporting anomaly...%v", line)
 		report(line)
