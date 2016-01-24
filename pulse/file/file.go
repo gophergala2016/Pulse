@@ -2,6 +2,7 @@ package file
 
 import (
 	"bufio"
+	"fmt"
 	"mime/multipart"
 	"os"
 	"strings"
@@ -31,6 +32,7 @@ func StreamRead(reader multipart.File, lineOut chan<- string) {
 		scanner := bufio.NewScanner(reader)
 		for scanner.Scan() {
 			val := scanner.Text()
+			fmt.Println(val)
 			lineOut <- val
 		}
 		lineOut <- "EOF"

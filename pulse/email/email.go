@@ -99,13 +99,13 @@ func Send(message string) {
 			fmt.Println("MailGun service is dependent of PulseConfig")
 			return
 		}
-		fireMailGun(message)
+		go fireMailGun(message)
 	case smtpSend:
 		if pulseConfigFail {
 			fmt.Println("SMTP client is dependent of PulseConfig")
 			return
 		}
-		fireSMTPMessage(message)
+		go fireSMTPMessage(message)
 	case jsonSend:
 		fireJSONOutput(message)
 	}
@@ -113,6 +113,13 @@ func Send(message string) {
 
 func SaveToCache(message string) {
 	fireJSONOutput(message)
+}
+
+func IsValid(email string) bool {
+	gun := mailgun.NewMailgun(mGun.Domain, mGun.PrivateKey, mGun.PublicKey)
+
+	check, _ := gun.ValidateEmail(email)
+	return check.IsValid
 }
 
 // fireMailGun : uses MailGun API: thanks! for your service :)

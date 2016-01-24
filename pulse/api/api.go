@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"path/filepath"
+	"time"
 
 	"github.com/gophergala2016/Pulse/pulse"
 	"github.com/gophergala2016/Pulse/pulse/config"
@@ -95,6 +97,12 @@ func SendFile(w http.ResponseWriter, r *http.Request) {
 	}
 	r.ParseForm()
 	body.Email = r.Form["email"][0]
+	if !email.IsValid(body.Email) {
+		w.Header().Set("Content-Type", "application/json")
+		result, _ := json.Marshal(Result{400, "email not valid"})
+		io.WriteString(w, string(result))
+		return
+	}
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		result, _ := json.Marshal(Result{400, "bad request"})
@@ -110,21 +118,27 @@ func SendFile(w http.ResponseWriter, r *http.Request) {
 	email.OutputFile = filename + ".json"
 	email.EmailList = []string{body.Email}
 
-	pulse.Run(stdIn, email.SaveToCache)
-	line := make(chan string)
-	file.StreamRead(f, line)
-	for l := range line {
-		if l == "EOF" {
-			email.ByPassMail = false
-			// Once EOF, time to send email from cache JSON storage
-			email.SendFromCache(email.OutputFile)
-			break
+	go func() {
+		start := time.Now()
+		pulse.Run(stdIn, email.SaveToCache)
+		line := make(chan string)
+		file.StreamRead(f, line)
+		for l := range line {
+			if l == "EOF" {
+				email.ByPassMail = false
+				// Once EOF, time to send email from cache JSON storage
+				email.SendFromCache(email.OutputFile)
+				break
+			}
+			stdIn <- l
 		}
-		stdIn <- l
-	}
-	close(stdIn)
+		close(stdIn)
+
+		elapsed := time.Since(start)
+		log.Printf("Pulse Algorithm took %s", elapsed)
+	}()
 
 	w.Header().Set("Content-Type", "application/json")
-	result, _ := json.Marshal(Result{400, "bad request"})
+	result, _ := json.Marshal(Result{200, "success"})
 	io.WriteString(w, string(result))
 }
