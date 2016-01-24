@@ -452,7 +452,7 @@ func reportAnomaly(line string) {
 
 	//fmt.Printf("Pattern creation rate: %v, rate increasing? %v", patternCreationRate, patternCreationRateIncreasing)
 	if (!patternCreationRateIncreasing || patternCreationRate <= 0.20) && (len(patterns) != 0) {
-		fmt.Printf("Reporting anomaly...%v", line)
+		fmt.Printf("\nReporting anomaly...%v\n", line)
 		report(line)
 	}
 }
@@ -464,7 +464,7 @@ func analyze(line string) {
 	inputsSinceLastNewPattern++
 
 	if len(patterns) == lastPatternCount {
-		patternCreationRate = patternCreationRate * 0.95
+		patternCreationRate = patternCreationRate * 0.99
 	}
 
 	//search for existing pattern using token map
@@ -488,7 +488,7 @@ func analyze(line string) {
 		}
 	}
 
-	if float64(tokensInCommon)/float64(len(lineTokens)) >= 0.5 {
+	if float64(tokensInCommon)/float64(len(lineTokens)) >= 0.8 {
 		patternFound = matchInputToPattern(mostLikelyPattern, lineTokens, line)
 	}
 
@@ -521,7 +521,7 @@ func analyze(line string) {
 
 		if !patternFound {
 			unmatched = append(unmatched, unmatchedLog{line, time.Now(), false})
-			reportAnomaly(line)
+			//reportAnomaly(line)
 		} else { //remove unmatched line from unmatched slice
 			unmatched = append(unmatched[:index], unmatched[index+1:]...)
 		}
