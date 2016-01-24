@@ -199,6 +199,7 @@ func SendFile(w http.ResponseWriter, r *http.Request) {
 			if l == "EOF" {
 				email.ByPassMail = false
 				// Once EOF, time to send email from cache JSON storage
+				email.DumpBuffer() // Must clear buffer first before sending
 				email.SendFromCache(email.OutputFile)
 				break
 			}

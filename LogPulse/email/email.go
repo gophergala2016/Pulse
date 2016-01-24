@@ -1,9 +1,13 @@
+// Package email will try and send an email using MailGun.
+// If we don't have the config for MailGun use the SMTP confg.
+// If we don't have that either save to the output file specified in config
 package email
 
 import (
 	"encoding/json"
 	"fmt"
 	"net/smtp"
+	"os"
 	"strconv"
 
 	"github.com/gophergala2016/Pulse/LogPulse/config"
@@ -17,49 +21,52 @@ const (
 	jsonSend    = iota
 )
 
-// JSONAlert ...
+// JSONAlert holds the message and body to send through email.
 type JSONAlert struct {
 	Message string `json:"message"`
 	Body    string `json:"body"`
 }
 
-var mGun *config.SecretConfig
-var smtpConfig *config.SMTPConfig
-
-// EmailList : contains a list of all the emails used to for sending
-var EmailList []string
-
-// OutputFile may change if email is called via an API
-var OutputFile string
-var stringBuffer []string
-
 var (
-	emailOption     = -1
-	pulseConfigFail = false
-	// ByPassMail : used to send straight to JSON
+	emailOption = -1
+
+	// ByPassMail is Whether or not we are using the email system.
 	ByPassMail = false
+	mGun       *config.SecretConfig
+	smtpConfig *config.SMTPConfig
+
+	// EmailList is a list of emails to send messages to.
+	EmailList []string
+
+	// OutputFile is the output file specified in the main config
+	OutputFile   string
+	stringBuffer []string
 )
 
-/* initialize email service used for notifications
-1. MailGun
-2. SMTP package
-3. Send to JSON
-*/
+// initialize email service used for notifications
+// 1. MailGun
+// 2. SMTP package
+// 3. Send to JSON
 func init() {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println(r)
+			os.Exit(0)
+		}
+	}()
+
 	if ByPassMail {
 		emailOption = jsonSend
 		return
 	}
 	val, err := config.Load()
 	if err != nil {
-		fmt.Println("email.init: Failed  to load Main config file")
-		pulseConfigFail = true
+		panic(fmt.Errorf("email.init: Failed to load Main config file"))
 	}
 
-	if !pulseConfigFail {
-		EmailList = val.EmailList
-		OutputFile = val.OutputFile
-	}
+	// Get values from the main config.
+	EmailList = val.EmailList
+	OutputFile = val.OutputFile
 
 	mGun, err = config.LoadSecret()
 	if err != nil {
@@ -70,13 +77,16 @@ func init() {
 			emailOption = jsonSend
 			return
 		}
+		// Use SMTP
 		emailOption = smtpSend
 		return
 	}
+	// Use MailGun
 	emailOption = mailGunSend
 }
 
-// SendFromCache : sends email via MailGun, smtp server, or simply a JSON file but loads body from cache
+// SendFromCache sends email via MailGun, smtp server, or simply a JSON file but loads body from cache file.
+// Filename is the location of the cache file
 func SendFromCache(filename string) {
 	fmt.Println("email.SendFromCache: Sending from Cache")
 	var body string
@@ -90,33 +100,25 @@ func SendFromCache(filename string) {
 	Send(body)
 }
 
-// Send : sends email via MailGun, smtp server, or simply a JSON file
+// Send sends email via MailGun, smtp server, or simply a JSON file.
 func Send(message string) {
 	fmt.Println("email.Send: Sending")
 	switch emailOption {
 	case mailGunSend:
-		if pulseConfigFail {
-			fmt.Println("email.Send: MailGun service is dependent of PulseConfig")
-			return
-		}
 		go fireMailGun(message)
 	case smtpSend:
-		if pulseConfigFail {
-			fmt.Println("email.Send: SMTP client is dependent of PulseConfig")
-			return
-		}
 		go fireSMTPMessage(message)
 	case jsonSend:
-		fireJSONOutput(message)
+		go fireJSONOutput(message)
 	}
 }
 
-//SaveToCache takes a string and saves it to file
+//SaveToCache takes a string and saves it to file.
 func SaveToCache(message string) {
-	fireJSONOutput(message)
+	go fireJSONOutput(message)
 }
 
-//IsValid checks to see if the email that is passed in is a valid email or not
+// IsValid checks to see if the email that is passed in is a valid email or not.
 func IsValid(email string) bool {
 	gun := mailgun.NewMailgun(mGun.Domain, mGun.PrivateKey, mGun.PublicKey)
 
@@ -124,13 +126,12 @@ func IsValid(email string) bool {
 	return check.IsValid
 }
 
-// fireMailGun : uses MailGun API: thanks! for your service :)
+// fireMailGun uses MailGun API: thanks! for your service :)
 func fireMailGun(body string) {
 	gun := mailgun.NewMailgun(mGun.Domain, mGun.PrivateKey, mGun.PublicKey)
 
 	for _, email := range EmailList { // Get Addresses from PulseConfig
-		check, _ := gun.ValidateEmail(email)
-		if check.IsValid {
+		if IsValid(email) {
 			m := mailgun.NewMessage(
 				fmt.Sprintf("LogPulse <%s>", mGun.Sender),
 				"Alert! Found Anomaly in Log Files via LogPulse",
@@ -147,11 +148,11 @@ func fireMailGun(body string) {
 
 }
 
-// fireSMTPMessage : uses smtp client to fire an email based on config file settings
+// fireSMTPMessage uses smtp client to fire an email based on config file settings.
 func fireSMTPMessage(body string) {
 
 	auth := smtp.PlainAuth(
-		"",
+		"", // identity left blank because it will use UserName instead
 		smtpConfig.User.UserName,
 		smtpConfig.User.PassWord,
 		smtpConfig.Server.Host,
@@ -178,7 +179,8 @@ func fireSMTPMessage(body string) {
 	}
 }
 
-// fireJSONOutput : when all else fails... output body to JSON
+// fireJSONOutput when all else fails... output body to JSON
+// Also used by chaching system.
 func fireJSONOutput(body string) {
 
 	output := JSONAlert{"Alert! Found Anomaly in Log Files via LogPulse", body}
@@ -188,6 +190,7 @@ func fireJSONOutput(body string) {
 		return
 	}
 
+	// Create a buffer of strings so we are not constantly opening and closing the file
 	stringBuffer = append(stringBuffer, string(val))
 	if len(stringBuffer) > 9 {
 		DumpBuffer()
@@ -196,7 +199,9 @@ func fireJSONOutput(body string) {
 
 //DumpBuffer clears out the string buffer (useful for clean shutdowns)
 func DumpBuffer() {
-
+	if OutputFile == "" {
+		panic(fmt.Errorf("email.DumpBuffer: Must specify an output file in PulseConfig.toml"))
+	}
 	file.Write(OutputFile, stringBuffer)
 	stringBuffer = nil
 }
