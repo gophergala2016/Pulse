@@ -1,3 +1,4 @@
 pulse/cmd/pulse/MailGun.toml
 pulse/cmd/pulse/SMTP.toml
 *.csv
+*.gz

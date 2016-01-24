@@ -6,9 +6,11 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/gophergala2016/Pulse/pulse"
 	"github.com/gophergala2016/Pulse/pulse/config"
 	"github.com/gophergala2016/Pulse/pulse/email"
@@ -73,13 +75,14 @@ func StreamLog(w http.ResponseWriter, r *http.Request) {
 
 // SendFile : Post log files to our API
 func SendFile(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("SendFile")
+
 	if r.Method != "POST" {
 		w.Header().Set("Content-Type", "application/json")
 		result, _ := json.Marshal(Result{400, "bad request"})
 		io.WriteString(w, string(result))
 		return
 	}
+	compressed := false
 
 	f, header, err := r.FormFile("file")
 	fmt.Println("Form File")
@@ -113,6 +116,40 @@ func SendFile(w http.ResponseWriter, r *http.Request) {
 	extension := filepath.Ext(header.Filename)
 	filename := header.Filename[0 : len(header.Filename)-len(extension)]
 
+	if extension == ".gz" {
+		// Load compressed file on disk
+		out, err := os.Create(fmt.Sprintf("%s.gz", filename))
+		if err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			result, _ := json.Marshal(Result{400, "bad request"})
+			io.WriteString(w, string(result))
+			return
+		}
+
+		defer out.Close()
+
+		// write the content from POST to the file
+		_, err = io.Copy(out, f)
+		if err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			result, _ := json.Marshal(Result{400, "gzip copy failed"})
+			io.WriteString(w, string(result))
+			return
+		}
+
+		// Uncompress file
+		err = file.UnGZip(fmt.Sprintf("%s.gz", filename))
+		if err != nil {
+			spew.Dump(err)
+			w.Header().Set("Content-Type", "application/json")
+			result, _ := json.Marshal(Result{400, "gzip uncompressed failed"})
+			io.WriteString(w, string(result))
+			return
+		}
+
+		compressed = true
+	}
+
 	stdIn := make(chan string)
 	email.ByPassMail = true // Needs to bypass emails and store in JSON
 	email.OutputFile = filename + ".json"
@@ -122,7 +159,13 @@ func SendFile(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		pulse.Run(stdIn, email.SaveToCache)
 		line := make(chan string)
-		file.StreamRead(f, line)
+
+		if compressed {
+			file.Read(filename, line)
+		} else {
+			file.StreamRead(f, line)
+		}
+
 		for l := range line {
 			if l == "EOF" {
 				email.ByPassMail = false
@@ -136,6 +179,19 @@ func SendFile(w http.ResponseWriter, r *http.Request) {
 
 		elapsed := time.Since(start)
 		log.Printf("Pulse Algorithm took %s", elapsed)
+
+		// Clean up
+		if compressed {
+			err := os.Remove(filename)
+			if err != nil {
+				fmt.Println("Failed to delete uncompressed file, please delete")
+			}
+
+			err = os.Remove(fmt.Sprintf("%s.gz", filename))
+			if err != nil {
+				fmt.Println("Failed to delete uncompressed file, please delete")
+			}
+		}
 	}()
 
 	w.Header().Set("Content-Type", "application/json")

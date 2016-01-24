@@ -563,7 +563,6 @@ func ld(s, t string) int {
 //Run starts the pulse package
 func Run(in <-chan string, out outputFunc) {
 	input = in
-	fmt.Println("Inside pulse: ", input)
 	report = out
 	initTokenMap()
 	go func() {

@@ -2,7 +2,9 @@ package file
 
 import (
 	"bufio"
+	"compress/gzip"
 	"fmt"
+	"io"
 	"mime/multipart"
 	"os"
 	"strings"
@@ -50,4 +52,26 @@ func Write(filename string, lines []string) {
 	if _, err = outFile.WriteString(longString); err != nil {
 		panic(err)
 	}
+}
+
+// UnGZip : used to uncompress files
+func UnGZip(filename string) error {
+	file, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	newfile := filename[0 : len(filename)-len(".gz")]
+	out, err := os.Create(newfile)
+	if err != nil {
+		return err
+	}
+
+	defer out.Close()
+
+	r, err := gzip.NewReader(file)
+	io.Copy(out, r)
+	r.Close()
+
+	return nil
 }
