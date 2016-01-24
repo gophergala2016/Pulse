@@ -151,6 +151,18 @@ func SendFile(w http.ResponseWriter, r *http.Request) {
 	extension := filepath.Ext(header.Filename)
 	filename := header.Filename[0 : len(header.Filename)-len(extension)]
 
+	stdIn := make(chan string)
+	email.ByPassMail = true // Needs to bypass emails and store in JSON
+	email.OutputFile = fmt.Sprintf("%s-%s.json", filename, body.Email)
+	email.EmailList = []string{body.Email}
+
+	if _, err := os.Stat(email.OutputFile); err == nil {
+		w.Header().Set("Content-Type", "application/json")
+		result, _ := json.Marshal(Result{406, "file is being processed"})
+		io.WriteString(w, string(result))
+		return
+	}
+
 	if extension == ".gz" {
 		// Load compressed file on disk
 		out, err := os.Create(fmt.Sprintf("%s.gz", filename))
@@ -183,18 +195,6 @@ func SendFile(w http.ResponseWriter, r *http.Request) {
 		}
 
 		compressed = true
-	}
-
-	stdIn := make(chan string)
-	email.ByPassMail = true // Needs to bypass emails and store in JSON
-	email.OutputFile = fmt.Sprintf("%s-%s.json", filename, body.Email)
-	email.EmailList = []string{body.Email}
-
-	if _, err := os.Stat(email.OutputFile); err == nil {
-		w.Header().Set("Content-Type", "application/json")
-		result, _ := json.Marshal(Result{406, "file is being processed"})
-		io.WriteString(w, string(result))
-		return
 	}
 
 	// Run on separat go routine so that we can give users a response on page first.
