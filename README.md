@@ -12,6 +12,7 @@ LogPulse accepts one flag `-api`. This is what is running our live demo. It acce
 - [Install](#install)
   - [Pulse Config](#pulse-config)
   - [SMTP Config](#smtp-config)
+- [Live Demo](#live-demo)
 - [Team](#team)
 - [TODO](#todo)
 
@@ -75,6 +76,10 @@ PassWord = "LovelyPassword"
 `[User]` is also a table but with `UserName` and `PassWord`
 - `UserName` is the email address at which the email is sending from.
 - `PassWord` is the password for the user that is sending the email
+ 
+## Live Demo
+
+Checkout our live demo at [pulse.clemsonopoly.com](http://pulse.clemsonopoly.com#live-demo)
 
 ## Team
 - Michael Dropps [Github](https://github.com/michaeldropps)
