@@ -3,3 +3,4 @@ LogPulse/SMTP.toml
 demoData/
 *.csv
 *.gz
+*.json
