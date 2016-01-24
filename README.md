@@ -1,3 +1,8 @@
+# Content
+- [Pulse](#Pulse)
+  - [Install](#Install)
+    - [Pulse Config](#Pulse Config)
+
 # Pulse
 Log pulse learns from your log files. It uses a machine learning algorithm that Michael Dropps came up with. It is a go package that can be consumed and used for use for anyone that wants to use it. The package itself just reads lines of strings and returns what it thinks is out of place. That way when you are trying to find that error in your logs, you don't spend hours searching and looking. We have made a simple application around it to show case it's ability.
 
