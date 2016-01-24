@@ -2,6 +2,7 @@ package pulse
 
 import (
 	"fmt"
+	"math"
 	"sort"
 	"time"
 	"unicode"
@@ -234,6 +235,144 @@ func patternsFromToken(word string) []*pattern {
 	return keys
 }
 
+func matchPattern(pat pattern, longTokens []string, input string) bool {
+	foundPattern := false
+	var vertices []vertex
+	var shortTokens []string
+	for i := range pat.tokens {
+		shortTokens = append(shortTokens, pat.tokens[i].word)
+	}
+
+	matrix := make([][]int, len(shortTokens))
+	for i := range shortTokens {
+		matrix[i] = make([]int, len(longTokens))
+		for j := range matrix[i] {
+			var matches = 0
+			if shortTokens[i] == longTokens[j] {
+				matches++
+				vertices = addUpdateVertex(vertex{i, j, matches}, vertices)
+				var prevRow = j - 1
+				var prevCol = i - 1
+				for prevRow > 0 && prevCol > 0 {
+					if shortTokens[prevCol] == longTokens[prevRow] {
+						matches++
+						vertices = addUpdateVertex(vertex{prevCol, prevRow, matches}, vertices)
+						prevRow--
+						prevCol--
+					} else {
+						break
+					}
+				}
+			}
+			matrix[i][j] = matches
+		}
+	}
+
+	foundPattern, vertices = analyzeMatrix(matrix, vertices)
+	var newPattern pattern
+	if foundPattern {
+		lastPoint := vertex{-1, -1, 0}
+		for i := range vertices {
+			var skippedBeginning = i == 0 && vertices[i].x != 0 && vertices[i].y != 0
+			var vertex = vertices[i]
+			var distance = (vertex.x - lastPoint.x) + (vertex.y - lastPoint.y)
+			if distance <= 2 && !skippedBeginning {
+				lastPoint = vertex
+				text := shortTokens[lastPoint.x]
+				newPattern.tokens = append(newPattern.tokens, token{text, false, true, nil})
+			} else {
+				xDiff := vertex.x - lastPoint.x
+				yDiff := vertex.y - lastPoint.y
+				skippedColText := ""
+				skippedRowText := ""
+				if xDiff > 1 {
+					var skipped = shortTokens[lastPoint.x+1 : vertex.x]
+					for x := range skipped {
+						skippedColText += skipped[x]
+					}
+					if skippedColText == "!WILDCARD!" {
+						skippedColText = ""
+					}
+					//fmt.Println("Skipped col: " + skippedColText)
+				}
+
+				if yDiff > 1 {
+					var skipped = longTokens[lastPoint.y+1 : vertex.y]
+					for y := range skipped {
+						skippedRowText += skipped[y]
+					}
+					//fmt.Println("Skipped row: " + skippedRowText)
+				}
+
+				var variableText []variation
+				if skippedColText != "" {
+					variableText = append(variableText, variation{skippedColText, 1})
+				}
+				if skippedRowText != "" {
+					variableText = append(variableText, variation{skippedRowText, 1})
+				}
+				lastPoint = vertex
+				text := shortTokens[lastPoint.x]
+				//add wildcard token to sequence
+				newPattern.tokens = append(newPattern.tokens, token{"!WILDCARD!", true, len(variableText) > 1, variableText})
+				//add static token to sequence
+				newPattern.tokens = append(newPattern.tokens, token{text, false, true, nil})
+			}
+			//fmt.Printf("%v \n", vertex)
+		}
+
+		if len(newPattern.tokens) <= len(pat.tokens) {
+			//fmt.Println("Revising original pattern...")
+			for i := range newPattern.tokens {
+				var originalToken = pat.tokens[i]
+				var newToken = newPattern.tokens[i]
+				var newText string
+				if newToken.variable && len(newToken.variations) == 1 {
+					newText = newToken.variations[0].text
+				}
+
+				if originalToken.variable && newToken.variable {
+					accountedForNewValue := false
+					for j := range originalToken.variations {
+						if originalToken.variations[j].text == newText {
+							originalToken.variations[j].numMatches++
+							accountedForNewValue = true
+						}
+					}
+					if !accountedForNewValue {
+						originalToken.variations = append(originalToken.variations, variation{newText, 1})
+					}
+				} else if newToken.variable && !originalToken.variable {
+					originalToken.word = "!WILDCARD!"
+					originalToken.variable = true
+					for j := range newToken.variations {
+						originalToken.variations = append(originalToken.variations, variation{newToken.variations[j].text, 1})
+					}
+				}
+
+				pat.tokens[i] = originalToken
+				pat.numMatches++
+			}
+			//fmt.Printf("Revised pattern: %v", pat)
+		} else {
+			//determine how close the patterns are
+			var diff = math.Abs(float64(len(pat.tokens)) - float64(len(newPattern.tokens)))
+			var maxLength = float64(max(len(pat.tokens), len(newPattern.tokens)))
+			if ((maxLength - diff) / maxLength) >= 0.90 {
+				return true
+			}
+
+			//fmt.Printf("pattern tokens: %v  newPattern tokens: %v", len(pat.tokens), len(newPattern.tokens))
+			//a pattern was detected above a certain threshold in the input, but the length of tokens is off
+			reportAnomaly(input)
+			return false
+		}
+
+		return true
+	}
+	return false
+}
+
 func findPattern(shortTokens []string, longTokens []string) bool {
 	foundPattern := false
 	var vertices []vertex
@@ -261,18 +400,6 @@ func findPattern(shortTokens []string, longTokens []string) bool {
 			matrix[i][j] = matches
 		}
 	}
-
-	/*for j := range longTokens {
-		fmt.Printf("\n")
-		for i := range shortTokens {
-			fmt.Printf("%v ", matrix[i][j])
-		}
-	}*/
-
-	/*for i := range vertices {
-		var vertex = vertices[i]
-		fmt.Printf("%v \n", vertex)
-	}*/
 
 	foundPattern, vertices = analyzeMatrix(matrix, vertices)
 	if foundPattern {
@@ -367,88 +494,8 @@ func indexOfWordInVariations(value string, words []variation) int {
 	return -1
 }
 
-func matchInputToPattern(p *pattern, words []string, input string) bool {
-	var patternTokens = p.tokens
-	var lastVariableToken *token
-	var matchingTokens = 0
-	var requiredTokenCount = 0
-	var requiredStaticTokenCount = 0
-	var staticTokensMatched = 0
-	var reviseVariable = false
-	var revisionIndex = -1
-	var revisions []revision
-	for i := range patternTokens {
-		var t = patternTokens[i]
-		if t.required {
-			requiredTokenCount++
-		}
-
-		if t.variable {
-			lastVariableToken = &t
-			reviseVariable = true
-			revisionIndex = i
-			continue
-		} else {
-			requiredStaticTokenCount++
-			var index = indexOfWord(t.word, words)
-			if index == -1 { //required token was not found in input
-				return false
-			} else if index == 0 {
-				matchingTokens++
-				staticTokensMatched++
-				words = words[index+1:]
-			} else if index > 0 && reviseVariable {
-				text := words[:index]
-				textStr := ""
-				//build string to add or update
-				for j := range text {
-					textStr = textStr + text[j]
-				}
-
-				var lvt = *lastVariableToken
-				revisions = append(revisions, revision{&lvt, revisionIndex, &lvt.variations, textStr})
-
-				matchingTokens = matchingTokens + 2 //the variable token and the static one
-				staticTokensMatched++
-
-				words = words[index+1:]
-			}
-		}
-	}
-	//fmt.Printf("\nRequired tokens in pattern: %v  Tokens matched: %v\n", requiredStaticTokenCount, staticTokensMatched)
-	//fmt.Printf("Revisions: %v\n", revisions)
-
-	if requiredTokenCount == matchingTokens {
-		for i := range revisions {
-			var v = revisions[i].variations
-			var str = revisions[i].text
-			var token = *(revisions[i].tokenPtr)
-			var idx = indexOfWordInVariations(str, *v)
-			if idx == -1 {
-				*v = append(*v, variation{str, 1})
-				token.variations = *v
-				p.tokens[revisions[i].tokenIndex] = token
-			} else {
-				arr := *v
-				arr[idx].numMatches++
-			}
-		}
-		p.numMatches++
-		//fmt.Printf("Pattern revised: %v", p)
-		return true
-	}
-
-	if staticTokensMatched >= requiredStaticTokenCount { //all the required static elements matched, but not revising
-		p.numMatches++
-		reportAnomaly(input)
-		return true
-	}
-
-	return false
-}
-
 func reportAnomaly(line string) {
-	//fmt.Printf("Pattern count: %v\n", len(patterns))
+	fmt.Printf("\nPattern count: %v\n", len(patterns))
 
 	//fmt.Printf("Pattern creation rate: %v, rate increasing? %v", patternCreationRate, patternCreationRateIncreasing)
 	if (!patternCreationRateIncreasing || patternCreationRate <= 0.20) && (len(patterns) != 0) {
@@ -488,12 +535,15 @@ func analyze(line string) {
 		}
 	}
 
-	if float64(tokensInCommon)/float64(len(lineTokens)) >= 0.8 {
-		patternFound = matchInputToPattern(mostLikelyPattern, lineTokens, line)
+	//fmt.Printf("Tokens in common: %v Tokens in line: %v", tokensInCommon, lineTokens)
+	if float64(tokensInCommon)/float64(len(lineTokens)) >= 0.5 {
+		//patternFound = matchInputToPattern(mostLikelyPattern, lineTokens, line)
+		patternFound = matchPattern(*mostLikelyPattern, lineTokens, line)
 	}
 
 	//if no pattern found, compare to unmatched lines, see if a new pattern can be detected
 	if !patternFound {
+		//fmt.Println("Beginning levenstein distance comparison...")
 		for i := range unmatched {
 			var compare = unmatched[i].line
 			var distance = ld(line, compare)
