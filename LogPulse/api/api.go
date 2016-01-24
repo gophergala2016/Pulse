@@ -48,12 +48,20 @@ func init() {
 
 // Start will run the REST API.
 func Start() {
+	http.HandleFunc("/", HelloWorld)
 	http.HandleFunc("/log/message", StreamLog)
 	http.HandleFunc("/log/file", SendFile)
 
 	fmt.Printf("Listening on localhost:%d\n", port)
 	http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 
+}
+
+// HelloWorld ... testdummy handler for ec2 instance
+func HelloWorld(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	result, _ := json.Marshal(Result{200, "hello world"})
+	io.WriteString(w, string(result))
 }
 
 // StreamLog listens for post request for a string value.
@@ -179,8 +187,15 @@ func SendFile(w http.ResponseWriter, r *http.Request) {
 
 	stdIn := make(chan string)
 	email.ByPassMail = true // Needs to bypass emails and store in JSON
-	email.OutputFile = filename + ".json"
+	email.OutputFile = fmt.Sprintf("%s-%s.json", filename, body.Email)
 	email.EmailList = []string{body.Email}
+
+	if _, err := os.Stat(email.OutputFile); err == nil {
+		w.Header().Set("Content-Type", "application/json")
+		result, _ := json.Marshal(Result{406, "file is being processed"})
+		io.WriteString(w, string(result))
+		return
+	}
 
 	// Run on separat go routine so that we can give users a response on page first.
 	go func() {
@@ -226,7 +241,7 @@ func SendFile(w http.ResponseWriter, r *http.Request) {
 
 			err = os.Remove(email.OutputFile)
 			if err != nil {
-				fmt.Println("Failed to delete uncompressed file, please delete")
+				fmt.Println("Failed to delete output file, please delete")
 			}
 		}()
 	}()
