@@ -78,18 +78,21 @@ func init() {
 
 // SendFromCache : sends email via MailGun, smtp server, or simply a JSON file but loads body from cache
 func SendFromCache(filename string) {
+	fmt.Println("Sending from Cache")
 	var body string
 
 	line := make(chan string)
 	file.Read(filename, line)
 	for l := range line {
-		body += l
+		body += l + "\n"
 	}
+
 	Send(body)
 }
 
 // Send : sends email via MailGun, smtp server, or simply a JSON file
 func Send(message string) {
+	fmt.Println("Send")
 	switch emailOption {
 	case mailGunSend:
 		if pulseConfigFail {
@@ -106,6 +109,10 @@ func Send(message string) {
 	case jsonSend:
 		fireJSONOutput(message)
 	}
+}
+
+func SaveToCache(message string) {
+	fireJSONOutput(message)
 }
 
 // fireMailGun : uses MailGun API: thanks! for your service :)
@@ -180,8 +187,7 @@ func fireJSONOutput(body string) {
 
 //DumpBuffer clears out the string buffer (useful for clean shutdowns)
 func DumpBuffer() {
-	if emailOption == jsonSend {
-		file.Write(OutputFile, stringBuffer)
-		stringBuffer = nil
-	}
+
+	file.Write(OutputFile, stringBuffer)
+	stringBuffer = nil
 }

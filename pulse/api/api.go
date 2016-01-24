@@ -1,4 +1,4 @@
-package router
+package api
 
 import (
 	"encoding/json"
@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/gophergala2016/Pulse/pulse"
+	"github.com/gophergala2016/Pulse/pulse/config"
 	"github.com/gophergala2016/Pulse/pulse/email"
 	"github.com/gophergala2016/Pulse/pulse/file"
 )
@@ -19,12 +20,24 @@ type Result struct {
 }
 
 var buffStrings []string
+var port int
+
+func init() {
+	val, err := config.Load()
+	if err != nil {
+		panic(fmt.Errorf("Can't start API because config is missing"))
+	}
+	port = val.Port
+}
 
 // Start : will start the REST API
 func Start() {
 	http.HandleFunc("/log/message", StreamLog)
 	http.HandleFunc("/log/file", SendFile)
-	http.ListenAndServe(":8080", nil)
+
+	fmt.Printf("Listening on localhost:%d\n", port)
+	http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
+
 }
 
 // StreamLog : Post log statement to our API
@@ -58,7 +71,7 @@ func StreamLog(w http.ResponseWriter, r *http.Request) {
 
 // SendFile : Post log files to our API
 func SendFile(w http.ResponseWriter, r *http.Request) {
-
+	fmt.Println("SendFile")
 	if r.Method != "POST" {
 		w.Header().Set("Content-Type", "application/json")
 		result, _ := json.Marshal(Result{400, "bad request"})
@@ -67,7 +80,7 @@ func SendFile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	f, header, err := r.FormFile("file")
-
+	fmt.Println("Form File")
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		result, _ := json.Marshal(Result{400, "bad request"})
@@ -77,19 +90,18 @@ func SendFile(w http.ResponseWriter, r *http.Request) {
 
 	defer f.Close()
 
-	decoder := json.NewDecoder(r.Body)
 	var body struct {
 		Email string `json:"email"`
 	}
-
-	err = decoder.Decode(&body)
+	r.ParseForm()
+	body.Email = r.Form["email"][0]
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		result, _ := json.Marshal(Result{400, "bad request"})
 		io.WriteString(w, string(result))
 		return
 	}
-
+	fmt.Println("Received bodys", body.Email)
 	extension := filepath.Ext(header.Filename)
 	filename := header.Filename[0 : len(header.Filename)-len(extension)]
 
@@ -97,20 +109,22 @@ func SendFile(w http.ResponseWriter, r *http.Request) {
 	email.ByPassMail = true // Needs to bypass emails and store in JSON
 	email.OutputFile = filename + ".json"
 	email.EmailList = []string{body.Email}
-	pulse.Run(stdIn, email.Send)
 
+	pulse.Run(stdIn, email.SaveToCache)
 	line := make(chan string)
 	file.StreamRead(f, line)
 	for l := range line {
 		if l == "EOF" {
 			email.ByPassMail = false
 			// Once EOF, time to send email from cache JSON storage
-			go email.SendFromCache(email.OutputFile)
-			continue
+			email.SendFromCache(email.OutputFile)
+			break
 		}
 		stdIn <- l
 	}
 	close(stdIn)
 
-	fmt.Fprintf(w, "Pattern found and saving!")
+	w.Header().Set("Content-Type", "application/json")
+	result, _ := json.Marshal(Result{400, "bad request"})
+	io.WriteString(w, string(result))
 }

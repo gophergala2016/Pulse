@@ -30,9 +30,9 @@ func StreamRead(reader multipart.File, lineOut chan<- string) {
 	go func() {
 		scanner := bufio.NewScanner(reader)
 		for scanner.Scan() {
-			lineOut <- scanner.Text()
+			val := scanner.Text()
+			lineOut <- val
 		}
-
 		lineOut <- "EOF"
 	}()
 }

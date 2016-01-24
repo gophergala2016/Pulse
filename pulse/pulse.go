@@ -426,18 +426,19 @@ func ld(s, t string) int {
 //Run starts the pulse package
 func Run(in <-chan string, out outputFunc) {
 	input = in
+	fmt.Println("Inside pulse: ", input)
 	report = out
 	initTokenMap()
-	analyze("monkey x [michaeld] Hello World")
-	analyze("monkey x y x [bob] Hello World")
-	analyze("Harry is a bad donkey.")
-	analyze("Martin is a bad donkey.")
-	analyze("monkey x [harrison] Hello World!")
-	analyze("John is a bad donkey.")
-	/*go func() {
+	// analyze("monkey x [michaeld] Hello World")
+	// analyze("monkey x y x [bob] Hello World")
+	// analyze("Harry is a bad donkey.")
+	// analyze("Martin is a bad donkey.")
+	// analyze("monkey x [harrison] Hello World!")
+	// analyze("John is a bad donkey.")
+	go func() {
 		for value := range in {
 			analyze(value)
-			//report(value)
+			report(value)
 		}
-	}()*/
+	}()
 }
