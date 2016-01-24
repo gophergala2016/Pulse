@@ -197,6 +197,27 @@ func SendFile(w http.ResponseWriter, r *http.Request) {
 
 	// Run on separat go routine so that we can give users a response on page first.
 	go func() {
+		// Clean up
+		defer func() {
+			fmt.Println("Deleting files")
+			err = os.Remove(email.OutputFile)
+			if err != nil {
+				fmt.Println("Failed to delete output file, please delete")
+			}
+
+			if compressed {
+				err := os.Remove(filename)
+				if err != nil {
+					fmt.Println("Failed to delete uncompressed file, please delete")
+				}
+
+				err = os.Remove(fmt.Sprintf("%s.gz", filename))
+				if err != nil {
+					fmt.Println("Failed to delete uncompressed file, please delete")
+				}
+			}
+		}()
+
 		start := time.Now()
 		// Start the pulse algorithm
 		pulse.Run(stdIn, email.SaveToCache)
@@ -214,34 +235,14 @@ func SendFile(w http.ResponseWriter, r *http.Request) {
 				// Once EOF, time to send email from cache JSON storage
 				email.DumpBuffer() // Must clear buffer first before sending
 				email.SendFromCache(email.OutputFile)
+				close(stdIn)
 				break
 			}
 			stdIn <- l
 		}
-		close(stdIn)
 
 		elapsed := time.Since(start)
 		log.Printf("Pulse Algorithm took %s", elapsed)
-
-		// Clean up
-		defer func() {
-			if compressed {
-				err := os.Remove(filename)
-				if err != nil {
-					fmt.Println("Failed to delete uncompressed file, please delete")
-				}
-
-				err = os.Remove(fmt.Sprintf("%s.gz", filename))
-				if err != nil {
-					fmt.Println("Failed to delete uncompressed file, please delete")
-				}
-			}
-
-			err = os.Remove(email.OutputFile)
-			if err != nil {
-				fmt.Println("Failed to delete output file, please delete")
-			}
-		}()
 	}()
 
 	// Return a 200 success even if algorithm is still going.
