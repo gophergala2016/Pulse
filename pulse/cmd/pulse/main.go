@@ -6,8 +6,8 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/gophergala2016/Pulse/pulse"
+	"github.com/gophergala2016/Pulse/pulse/api"
 	"github.com/gophergala2016/Pulse/pulse/config"
 	"github.com/gophergala2016/Pulse/pulse/email"
 	"github.com/gophergala2016/Pulse/pulse/file"
@@ -48,7 +48,7 @@ func main() {
 }
 
 func startAPI() {
-	spew.Println("API Mode")
+	api.Start()
 }
 
 func startPulse(filenames []string) {

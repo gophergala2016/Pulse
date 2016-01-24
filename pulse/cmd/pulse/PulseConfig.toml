@@ -1,0 +1,15 @@
+LogList = [
+"demoData/kern.log.1",
+"demoData/kern.log.2"
+]
+
+EmailList = [
+"someuser@example.org",
+"AnneConley@example.org",
+"WeAreAwesome@example.org"
+]
+
+OutputFile = "PulseOut.txt"
+SMTPConfig = "SMTP.toml"
+
+Port = 8080
