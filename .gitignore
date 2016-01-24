@@ -3,5 +3,4 @@
 demoData/
 LogPulse/Logpulse
 *.csv
-*.gz
 *.json
