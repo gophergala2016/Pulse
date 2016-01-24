@@ -9,10 +9,10 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/gophergala2016/Pulse/LogPulse/config"
+	"github.com/gophergala2016/Pulse/LogPulse/email"
+	"github.com/gophergala2016/Pulse/LogPulse/file"
 	"github.com/gophergala2016/Pulse/pulse"
-	"github.com/gophergala2016/Pulse/pulse/config"
-	"github.com/gophergala2016/Pulse/pulse/email"
-	"github.com/gophergala2016/Pulse/pulse/file"
 )
 
 // Result : is used for ResponseWriter in handlers

@@ -7,11 +7,11 @@ import (
 	"os/signal"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/gophergala2016/Pulse/LogPulse/api"
+	"github.com/gophergala2016/Pulse/LogPulse/config"
+	"github.com/gophergala2016/Pulse/LogPulse/email"
+	"github.com/gophergala2016/Pulse/LogPulse/file"
 	"github.com/gophergala2016/Pulse/pulse"
-	"github.com/gophergala2016/Pulse/pulse/api"
-	"github.com/gophergala2016/Pulse/pulse/config"
-	"github.com/gophergala2016/Pulse/pulse/email"
-	"github.com/gophergala2016/Pulse/pulse/file"
 )
 
 var (
