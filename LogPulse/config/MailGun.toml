@@ -1,0 +1,4 @@
+Sender = "postmaster@clemsonopoly.com"
+Domain = "clemsonopoly.com"
+PrivateKey = "SECRET"
+PublicKey = "PUBLIC"

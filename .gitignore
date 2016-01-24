@@ -1,4 +1,5 @@
 *MailGun.toml
+!LogPulse/config/MailGun.toml
 *SMTP.toml
 demoData/
 LogPulse/Logpulse
