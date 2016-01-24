@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/gophergala2016/Pulse/pulse"
 	"github.com/gophergala2016/Pulse/pulse/api"
 	"github.com/gophergala2016/Pulse/pulse/config"
@@ -52,6 +53,7 @@ func startAPI() {
 }
 
 func startPulse(filenames []string) {
+	spew.Dump(filenames)
 	checkList(filenames)
 	stdIn := make(chan string)
 
