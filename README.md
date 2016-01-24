@@ -1,11 +1,21 @@
 # Pulse
+[![GoDoc](https://godoc.org/github.com/gophergala2016/Pulse?status.svg)](https://godoc.org/github.com/gophergala2016/Pulse)
+
 Log pulse learns from your log files. It uses a machine learning algorithm that Michael Dropps came up with. It is a go package that can be consumed and used for use for anyone. The package itself just reads lines of strings and returns what it thinks is out of place. That way when you are trying to find that error in your logs, you don't spend hours searching and looking. We have made a simple application around it to show case it's ability.
 
 The application is simple. If you run it with no flags or arguments it will read the `PulseConfig.toml` file and read those files listed there. If you include arguments but no flags then the arguments must be filepaths to logs you want to read. EX `LogPulse someFile.log anotherFile.log waitHereIsAnother.log`.
 
 LogPulse accepts one flag `-api`. This is what is running our live demo. It accepts a file on an endpoint in the body and runs the algorithm. It will email the user when it is done with all the anomalies it could find (we are using MailGun). If you wanted to run local you could supply an SMTP config file (location is set in `PulseConfig.toml` and must be a toml file). This is were the credentials are so you are able to send emails locally. You could have the SMTP config file setup and run LogPulse without the `-api` flag and it would send emails as well. If no email option is set it will save all emails (subject and body) to the output file that is specified in the `PulseConfig.toml`
 
-## As a package
+# Content
+- [As A Package](#as-a-package)
+- [Install](#install)
+  - [Pulse Config](#pulse-config)
+  - [SMTP Config](#smtp-config)
+- [Team](#team)
+- [TODO](#todo)
+
+## As A Package
 To use the algorithm just import the package as such!
 
 `import "github.com/gophergala2016/Pulse/pulse"`

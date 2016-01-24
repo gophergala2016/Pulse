@@ -1,4 +1,4 @@
-// Package api is to start the api to be listening on different endpoints
+// Package api is to start the api to be listening on different endpoints.
 // The API will listen on the port specified in the PulseConfig.toml.
 // There are 2 endpoints:
 // POST /log/file this will read the file line by line passing in each line to the algorithm
@@ -14,8 +14,6 @@ import (
 	"os"
 	"path/filepath"
 	"time"
-
-	"github.com/davecgh/go-spew/spew"
 
 	"github.com/gophergala2016/Pulse/LogPulse/config"
 	"github.com/gophergala2016/Pulse/LogPulse/email"
@@ -187,7 +185,7 @@ func SendFile(w http.ResponseWriter, r *http.Request) {
 		// Uncompress file
 		err = file.UnGZip(fmt.Sprintf("%s.gz", filename))
 		if err != nil {
-			spew.Dump(err)
+			log.Printf("api.UnGZip: %s\n", err)
 			w.Header().Set("Content-Type", "application/json")
 			result, _ := json.Marshal(Result{400, "gzip uncompressed failed"})
 			io.WriteString(w, string(result))
