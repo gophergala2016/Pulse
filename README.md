@@ -1,9 +1,4 @@
-# Content
-- [Pulse](#Pulse)
-  - [Install](#Install)
-    - [Pulse Config](#Pulse Config)
-
-# [Pulse](#pulse)
+# Pulse
 Log pulse learns from your log files. It uses a machine learning algorithm that Michael Dropps came up with. It is a go package that can be consumed and used for use for anyone that wants to use it. The package itself just reads lines of strings and returns what it thinks is out of place. That way when you are trying to find that error in your logs, you don't spend hours searching and looking. We have made a simple application around it to show case it's ability.
 
 The application is simple. If you run it with no commands it will listen on whatever port is specified in the `PulseConfig.toml` file. It is listening for any log server willing to give us log lines that are then passed to the algorithm. You can setup an SMTP server to be able to let our application email you if we find anything out of the unusual. But if you use the `-d` flag, for default, it will read what ever log files that already exist and are mapped to using the `PulseConfig.toml`.
@@ -11,6 +6,14 @@ The application is simple. If you run it with no commands it will listen on what
 Not enough what if you don't want to edit the config file every time. Then just pass in file names as arguments like so `LogPulse somefile.log yetAnotherLog.log`. It will read from both and let you know something is up.
 
 You don't have an SMTP server? Log Pulse will output all unusual entries into an output file that you specified in the config.
+
+# Content
+- [Install](#install)
+  - [Pulse Config](#pulse-config)
+  - [SMTP Config](#smtp-config)
+- [As A Package](#as-a-package)
+- [Team](#team)
+- [TODO](#todo)
 
 ## Install
 Installing is as simple as:
@@ -66,7 +69,7 @@ PassWord = "LovelyPawword"
 - `UserName` is the email address at which the email is sending from.
 - `PassWord` is the password for the user that is sending the email
 
-## As a package
+## As A Package
 To use the algorithm just import the package as such!
 
 `import "github.com/gophergala2016/Pulse/pulse"`
