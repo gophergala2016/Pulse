@@ -15,6 +15,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/gophergala2016/Pulse/LogPulse/config"
 	"github.com/gophergala2016/Pulse/LogPulse/email"
 	"github.com/gophergala2016/Pulse/LogPulse/file"
@@ -46,12 +47,20 @@ func init() {
 
 // Start will run the REST API.
 func Start() {
+	http.HandleFunc("/", HelloWorld)
 	http.HandleFunc("/log/message", StreamLog)
 	http.HandleFunc("/log/file", SendFile)
 
 	fmt.Printf("Listening on localhost:%d\n", port)
 	http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 
+}
+
+// HelloWorld ... testdummy handler for ec2 instance
+func HelloWorld(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	result, _ := json.Marshal(Result{200, "hello world"})
+	io.WriteString(w, string(result))
 }
 
 // StreamLog listens for post request for a string value.
@@ -141,6 +150,20 @@ func SendFile(w http.ResponseWriter, r *http.Request) {
 	extension := filepath.Ext(header.Filename)
 	filename := header.Filename[0 : len(header.Filename)-len(extension)]
 
+	stdIn := make(chan string)
+	email.ByPassMail = true // Needs to bypass emails and store in JSON
+	email.OutputFile = fmt.Sprintf("%s-%s.json", filename, body.Email)
+	email.EmailList = []string{body.Email}
+
+	if _, err := os.Stat(email.OutputFile); err == nil {
+		w.Header().Set("Content-Type", "application/json")
+		result, _ := json.Marshal(Result{406, "file is being processed"})
+		io.WriteString(w, string(result))
+		return
+	}
+	spew.Dump(email.OutputFile)
+	fmt.Println("File does not exist")
+
 	if extension == ".gz" {
 		// Load compressed file on disk
 		out, err := os.Create(fmt.Sprintf("%s.gz", filename))
@@ -175,13 +198,36 @@ func SendFile(w http.ResponseWriter, r *http.Request) {
 		compressed = true
 	}
 
-	stdIn := make(chan string)
-	email.ByPassMail = true // Needs to bypass emails and store in JSON
-	email.OutputFile = filename + ".json"
-	email.EmailList = []string{body.Email}
-
 	// Run on separat go routine so that we can give users a response on page first.
 	go func() {
+		// Clean up
+		defer func() {
+			fmt.Println("Deleting files")
+			err = os.Remove(email.OutputFile)
+			if err != nil {
+				fmt.Println("Failed to delete output file, please delete")
+			}
+
+			if _, err := os.Stat(email.OutputFile); err == nil {
+				err = os.Remove(email.OutputFile)
+				if err != nil {
+					fmt.Println("Failed to delete output file, please delete")
+				}
+			}
+
+			if compressed {
+				err := os.Remove(filename)
+				if err != nil {
+					fmt.Println("Failed to delete uncompressed file, please delete")
+				}
+
+				err = os.Remove(fmt.Sprintf("%s.gz", filename))
+				if err != nil {
+					fmt.Println("Failed to delete uncompressed file, please delete")
+				}
+			}
+		}()
+
 		start := time.Now()
 		// Start the pulse algorithm
 		pulse.Run(stdIn, email.SaveToCache)
@@ -197,36 +243,15 @@ func SendFile(w http.ResponseWriter, r *http.Request) {
 			if l == "EOF" {
 				email.ByPassMail = false
 				// Once EOF, time to send email from cache JSON storage
-				email.DumpBuffer() // Must clear buffer first before sending
 				email.SendFromCache(email.OutputFile)
+				close(stdIn)
 				break
 			}
 			stdIn <- l
 		}
-		close(stdIn)
 
 		elapsed := time.Since(start)
 		log.Printf("Pulse Algorithm took %s", elapsed)
-
-		// Clean up
-		defer func() {
-			if compressed {
-				err := os.Remove(filename)
-				if err != nil {
-					fmt.Println("Failed to delete uncompressed file, please delete")
-				}
-
-				err = os.Remove(fmt.Sprintf("%s.gz", filename))
-				if err != nil {
-					fmt.Println("Failed to delete uncompressed file, please delete")
-				}
-			}
-
-			err = os.Remove(email.OutputFile)
-			if err != nil {
-				fmt.Println("Failed to delete uncompressed file, please delete")
-			}
-		}()
 	}()
 
 	// Return a 200 success even if algorithm is still going.

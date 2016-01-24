@@ -191,17 +191,6 @@ func fireJSONOutput(body string) {
 	}
 
 	// Create a buffer of strings so we are not constantly opening and closing the file
-	stringBuffer = append(stringBuffer, string(val))
-	if len(stringBuffer) > 9 {
-		DumpBuffer()
-	}
-}
-
-//DumpBuffer clears out the string buffer (useful for clean shutdowns)
-func DumpBuffer() {
-	if OutputFile == "" {
-		panic(fmt.Errorf("email.DumpBuffer: Must specify an output file in PulseConfig.toml"))
-	}
+	stringBuffer = []string{string(val)}
 	file.Write(OutputFile, stringBuffer)
-	stringBuffer = nil
 }
