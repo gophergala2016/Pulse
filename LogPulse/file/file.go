@@ -1,3 +1,4 @@
+// Package file is used for reading and writting to files.
 package file
 
 import (

@@ -41,8 +41,6 @@ func init() {
 }
 
 func main() {
-	//uncomment for production
-
 	defer func() {
 		if r := recover(); r != nil {
 			fmt.Println(r)
