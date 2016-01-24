@@ -368,7 +368,6 @@ func matchPattern(pat pattern, longTokens []string, input string) bool {
 			}
 
 			//a match was made above a certain threshold between the pattern and the input, but the length of tokens is too far off
-			reportAnomaly(input)
 			return false
 		}
 
@@ -496,7 +495,6 @@ func indexOfWordInVariations(value string, words []variation) int {
 func reportAnomaly(line string) {
 	fmt.Printf("\nPattern count: %v\n", len(patterns))
 
-	//fmt.Printf("Pattern creation rate: %v, rate increasing? %v", patternCreationRate, patternCreationRateIncreasing)
 	if (!patternCreationRateIncreasing || patternCreationRate <= 0.20) && (len(patterns) != 0) {
 		fmt.Printf("\nReporting anomaly...%v\n", line)
 		report(line)
@@ -534,15 +532,12 @@ func analyze(line string) {
 		}
 	}
 
-	//fmt.Printf("Tokens in common: %v Tokens in line: %v", tokensInCommon, lineTokens)
 	if float64(tokensInCommon)/float64(len(lineTokens)) >= 0.5 {
-		//patternFound = matchInputToPattern(mostLikelyPattern, lineTokens, line)
 		patternFound = matchPattern(*mostLikelyPattern, lineTokens, line)
 	}
 
 	//if no pattern found, compare to unmatched lines, see if a new pattern can be detected
 	if !patternFound {
-		//fmt.Println("Beginning levenstein distance comparison...")
 		for i := range unmatched {
 			var compare = unmatched[i].line
 			var distance = ld(line, compare)
@@ -577,7 +572,7 @@ func analyze(line string) {
 	}
 }
 
-//Copied from http://rosettacode.org/wiki/Levenshtein_distance#Go
+//Levenshtein distance algorithm Copied from http://rosettacode.org/wiki/Levenshtein_distance#Go
 func ld(s, t string) int {
 	d := make([][]int, len(s)+1)
 	for i := range d {
