@@ -15,6 +15,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/gophergala2016/Pulse/LogPulse/config"
 	"github.com/gophergala2016/Pulse/LogPulse/email"
 	"github.com/gophergala2016/Pulse/LogPulse/file"
@@ -160,6 +161,8 @@ func SendFile(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, string(result))
 		return
 	}
+	spew.Dump(email.OutputFile)
+	fmt.Println("File does not exist")
 
 	if extension == ".gz" {
 		// Load compressed file on disk
@@ -205,6 +208,13 @@ func SendFile(w http.ResponseWriter, r *http.Request) {
 				fmt.Println("Failed to delete output file, please delete")
 			}
 
+			if _, err := os.Stat(email.OutputFile); err == nil {
+				err = os.Remove(email.OutputFile)
+				if err != nil {
+					fmt.Println("Failed to delete output file, please delete")
+				}
+			}
+
 			if compressed {
 				err := os.Remove(filename)
 				if err != nil {
@@ -233,7 +243,6 @@ func SendFile(w http.ResponseWriter, r *http.Request) {
 			if l == "EOF" {
 				email.ByPassMail = false
 				// Once EOF, time to send email from cache JSON storage
-				email.DumpBuffer() // Must clear buffer first before sending
 				email.SendFromCache(email.OutputFile)
 				close(stdIn)
 				break

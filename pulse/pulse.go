@@ -568,7 +568,6 @@ func Run(in <-chan string, out outputFunc) {
 	go func() {
 		for value := range in {
 			analyze(value)
-			report(value)
 		}
 	}()
 }
