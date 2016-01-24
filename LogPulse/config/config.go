@@ -56,10 +56,10 @@ func Load() (*Configuration, error) {
 	if _, err := toml.DecodeFile(pulseConfig, cfg); err != nil {
 		home, err := homedir.Dir()
 		if err != nil {
-			panic(fmt.Errorf("Could not find %s in the executable directory and could not find home directory", pulseConfig))
+			return nil, fmt.Errorf("config.Load: Could not find %s in the executable directory and could not find home directory", pulseConfig)
 		}
 		if _, err := toml.DecodeFile(filepath.Join(home, pulseConfig), cfg); err != nil {
-			panic(fmt.Errorf("Could not find %s in the %s or executable directory", pulseConfig, home))
+			return nil, fmt.Errorf("config.Load: Could not find %s in the %s or executable directory", pulseConfig, home)
 		}
 	}
 	return cfg, nil
@@ -69,11 +69,11 @@ func Load() (*Configuration, error) {
 func LoadSMTP() (*SMTPConfig, error) {
 	maincfg, err := Load()
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("config.LoadSMTP: %s", err)
 	}
 	cfg := &SMTPConfig{}
 	if _, err := toml.DecodeFile(maincfg.SMTPConfig, cfg); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("config.LoadSMTP: %s", err)
 	}
 	return cfg, nil
 }
@@ -82,7 +82,7 @@ func LoadSMTP() (*SMTPConfig, error) {
 func LoadSecret() (*SecretConfig, error) {
 	cfg := &SecretConfig{}
 	if _, err := toml.DecodeFile(mailGunConfig, cfg); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("config.LoadSecret: %s", err)
 	}
 	return cfg, nil
 }
