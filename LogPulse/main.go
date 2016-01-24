@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/gophergala2016/Pulse/LogPulse/api"
 	"github.com/gophergala2016/Pulse/LogPulse/config"
 	"github.com/gophergala2016/Pulse/LogPulse/email"
@@ -67,7 +68,9 @@ func startAPI() {
 }
 
 func startPulse(filenames []string) {
+	spew.Dump(filenames)
 	checkList(filenames)
+	spew.Dump(filenames)
 	stdIn := make(chan string)
 
 	c := make(chan os.Signal, 1)
@@ -99,9 +102,18 @@ func cleanUp() {
 }
 
 func checkList(filenames []string) {
-	for _, filename := range filenames {
+	for i, filename := range filenames {
 		if _, err := os.Stat(filename); os.IsNotExist(err) {
 			panic(fmt.Errorf("main.checkList: %s", err))
+		}
+		if len(filename) > 3 && filename[len(filename)-3:len(filename)] == ".gz" {
+			if err := file.UnGZip(filename); err != nil {
+				panic(fmt.Errorf("main.checkList: %s", err))
+			}
+			if _, err := os.Stat(filename[:len(filename)-3]); os.IsNotExist(err) {
+				panic(fmt.Errorf("main.checkList: %s", err))
+			}
+			filenames[i] = filename[:len(filename)-3]
 		}
 	}
 }

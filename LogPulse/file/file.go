@@ -61,13 +61,13 @@ func Write(filename string, lines []string) {
 func UnGZip(filename string) error {
 	file, err := os.Open(filename)
 	if err != nil {
-		return err
+		return fmt.Errorf("file.UnGZip: %s", err)
 	}
 	defer file.Close()
 	newfile := filename[0 : len(filename)-len(".gz")]
 	out, err := os.Create(newfile)
 	if err != nil {
-		return err
+		return fmt.Errorf("file.UnGZip: %s", err)
 	}
 
 	defer out.Close()
