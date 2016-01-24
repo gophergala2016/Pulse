@@ -62,7 +62,6 @@
 </li>
 <li><a href="#live-demo">Live Demo</a></li>
 <li><a href="#team">Team</a></li>
-<li><a href="#todo">TODO</a></li>
 </ul>
 
 <h2>
@@ -148,7 +147,13 @@ PassWord = "LovelyPassword"
 <h2>
 <a id="live-demo" class="anchor" href="#live-demo" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Live Demo</h2>
 
-<p>Checkout our live demo at <a href="http://pulse.clemsonopoly.com#live-demo">pulse.clemsonopoly.com</a></p>
+<form action="ec2-52-25-154-234.us-west-2.compute.amazonaws.com:80/log/file" method="post" enctype="multipart/form-data">
+  <label for="file">Filename:</label>
+  <input type="file" name="file" id="file">
+  <label for="email">Email:</label>
+  <input type="email" name="email" id="email">
+  <input type="submit" name="submit" value="Submit" />
+</form>
 
 <h2>
 <a id="team" class="anchor" href="#team" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Team</h2>
@@ -159,51 +164,6 @@ PassWord = "LovelyPassword"
 <li>Miguel Espinoza <a href="https://github.com/miguelespinoza">Github</a>
 </li>
 <li>Will Dixon <a href="https://github.com/dixonwille">Github</a>
-</li>
-</ul>
-
-<h2>
-<a id="todo" class="anchor" href="#todo" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TODO</h2>
-
-<ul>
-<li>[ ] Create Algorithm
-
-<ul>
-<li>[ ] DumpPattern</li>
-<li>[ ] LoadPattern</li>
-</ul>
-</li>
-<li>[x] Read Config values
-
-<ul>
-<li>[x] Files</li>
-<li>[x] Read a log file on Hard Drive</li>
-<li>[x] Write to a file to save outstanding logs</li>
-</ul>
-</li>
-<li>[x] Be able to send emails
-
-<ul>
-<li>[x] Use Mailgun's API to send emails</li>
-<li>[x] Validate User's Email using Mailgun</li>
-<li>[x] Store keys securely</li>
-</ul>
-</li>
-<li>[ ] Create the API
-
-<ul>
-<li>[ ] POST: log string</li>
-<li>[ ] POST: file</li>
-</ul>
-</li>
-<li>[x] Create Webpage
-
-<ul>
-<li>[ ] Consume the API</li>
-<li>[ ] Video of how it works</li>
-<li>[x] Static content describing the application</li>
-<li>[ ] Support links</li>
-</ul>
 </li>
 </ul>
         </article>
@@ -226,6 +186,6 @@ PassWord = "LovelyPassword"
     <p class="name"></p>
   </div>
 
-  
+
 </body>
 </html>
