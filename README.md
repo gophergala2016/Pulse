@@ -10,6 +10,7 @@ LogPulse accepts one flag `-api`. This is what is running our live demo. It acce
 
 # Content
 - [As A Package](#as-a-package)
+- [Video Demonstration] (https://www.youtube.com/playlist?list=PLVRxiozOhbUyYfLm_1FVRVgtgAMFZzfcq)
 - [Install](#install)
   - [Pulse Config](#pulse-config)
   - [SMTP Config](#smtp-config)
