@@ -39,18 +39,19 @@
           <h1>
 <a id="pulse" class="anchor" href="#pulse" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Pulse</h1>
 
-<p>Log pulse learns from your log files. It uses a machine learning algorithm that Michael Dropps came up with. It is a go package that can be consumed and used for use for anyone that wants to use it. The package itself just reads lines of strings and returns what it thinks is out of place. That way when you are trying to find that error in your logs, you don't spend hours searching and looking. We have made a simple application around it to show case it's ability.</p>
+<p><a href="https://godoc.org/github.com/gophergala2016/Pulse"><img src="https://godoc.org/github.com/gophergala2016/Pulse?status.svg" alt="GoDoc"></a></p>
 
-<p>The application is simple. If you run it with no commands it will listen on whatever port is specified in the <code>PulseConfig.toml</code> file. It is listening for any log server willing to give us log lines that are then passed to the algorithm. You can setup an SMTP server to be able to let our application email you if we find anything out of the unusual. But if you use the <code>-d</code> flag, for default, it will read what ever log files that already exist and are mapped to using the <code>PulseConfig.toml</code>.</p>
+<p>Log pulse learns from your log files. It uses a machine learning algorithm that Michael Dropps came up with. It is a go package that can be consumed and used for use for anyone. The package itself just reads lines of strings and returns what it thinks is out of place. That way when you are trying to find that error in your logs, you don't spend hours searching and looking. We have made a simple application around it to show case it's ability.</p>
 
-<p>Not enough what if you don't want to edit the config file every time. Then just pass in file names as arguments like so <code>LogPulse somefile.log yetAnotherLog.log</code>. It will read from both and let you know something is up.</p>
+<p>The application is simple. If you run it with no flags or arguments it will read the <code>PulseConfig.toml</code> file and read those files listed there. If you include arguments but no flags then the arguments must be filepaths to logs you want to read. EX <code>LogPulse someFile.log anotherFile.log waitHereIsAnother.log</code>.</p>
 
-<p>You don't have an SMTP server? Log Pulse will output all unusual entries into an output file that you specified in the config.</p>
+<p>LogPulse accepts one flag <code>-api</code>. This is what is running our live demo. It accepts a file on an endpoint in the body and runs the algorithm. It will email the user when it is done with all the anomalies it could find (we are using MailGun). If you wanted to run local you could supply an SMTP config file (location is set in <code>PulseConfig.toml</code> and must be a toml file). This is were the credentials are so you are able to send emails locally. You could have the SMTP config file setup and run LogPulse without the <code>-api</code> flag and it would send emails as well. If no email option is set it will save all emails (subject and body) to the output file that is specified in the <code>PulseConfig.toml</code></p>
 
 <h1>
 <a id="content" class="anchor" href="#content" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Content</h1>
 
 <ul>
+<li><a href="#as-a-package">As A Package</a></li>
 <li>
 <a href="#install">Install</a>
 
@@ -59,17 +60,25 @@
 <li><a href="#smtp-config">SMTP Config</a></li>
 </ul>
 </li>
-<li><a href="#as-a-package">As A Package</a></li>
 <li><a href="#team">Team</a></li>
 <li><a href="#todo">TODO</a></li>
 </ul>
+
+<h2>
+<a id="as-a-package" class="anchor" href="#as-a-package" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>As A Package</h2>
+
+<p>To use the algorithm just import the package as such!</p>
+
+<p><code>import "github.com/gophergala2016/Pulse/pulse"</code></p>
+
+<p>This package exposes the <code>Run(chan string, func(string))</code> function. You just need to create a channel that you are going to use. It does require that it is passed in line by line as well. The <code>func(string)</code> is a function that is called whenever an unusual string comes by. It is highly recommended that if this is being written to a file to buffer a few strings before you write. Then when you have read all strings dump the rest of the buffer in the file.</p>
 
 <h2>
 <a id="install" class="anchor" href="#install" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Install</h2>
 
 <p>Installing is as simple as:</p>
 
-<p><code>go get http://github.com/gophergala2016/Pulse/pulse/cmd/pulse</code></p>
+<p><code>go get github.com/gophergala2016/Pulse/LogPulse</code></p>
 
 <h3>
 <a id="pulse-config" class="anchor" href="#pulse-config" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Pulse Config</h3>
@@ -114,7 +123,7 @@ Port = 25
 
 [User]
 UserName = "user@server.com"
-PassWord = "LovelyPawword"
+PassWord = "LovelyPassword"
 </code></pre>
 
 <p><code>[Server]</code> is a table with <code>Host</code> and <code>Port</code></p>
@@ -136,20 +145,9 @@ PassWord = "LovelyPawword"
 </ul>
 
 <h2>
-<a id="as-a-package" class="anchor" href="#as-a-package" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>As A Package</h2>
-
-<p>To use the algorithm just import the package as such!</p>
-
-<p><code>import "github.com/gophergala2016/Pulse/pulse"</code></p>
-
-<p>This package exposes the <code>Run(chan string, func(string))</code> function. You just need to create a channel that you are going to use. It does require that it is passed in line by line as well. The <code>func(string)</code> is a function that is called whenever an unusual string comes by. It is highly recommended that if this is being written to a file to buffer a few strings before you write. Then when you have read all strings dump the rest of the buffer in the file.</p>
-
-<h2>
 <a id="team" class="anchor" href="#team" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Team</h2>
 
 <ul>
-<li>Josh Suggs <a href="https://github.com/joshua">Github</a>
-</li>
 <li>Michael Dropps <a href="https://github.com/michaeldropps">Github</a>
 </li>
 <li>Miguel Espinoza <a href="https://github.com/miguelespinoza">Github</a>
@@ -192,12 +190,12 @@ PassWord = "LovelyPawword"
 <li>[ ] POST: file</li>
 </ul>
 </li>
-<li>[ ] Create Webpage
+<li>[x] Create Webpage
 
 <ul>
 <li>[ ] Consume the API</li>
 <li>[ ] Video of how it works</li>
-<li>[ ] Static content describing the application</li>
+<li>[x] Static content describing the application</li>
 <li>[ ] Support links</li>
 </ul>
 </li>
