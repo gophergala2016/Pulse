@@ -7,6 +7,14 @@ Not enough what if you don't want to edit the config file every time. Then just 
 
 You don't have an SMTP server? Log Pulse will output all unusual entries into an output file that you specified in the config.
 
+# Content
+- [Install](#install)
+  - [Pulse Config](#pulse-config)
+  - [SMTP Config](#smtp-config)
+- [As A Package](#as-a-package)
+- [Team](#team)
+- [TODO](#todo)
+
 ## Install
 Installing is as simple as:
 
@@ -61,7 +69,7 @@ PassWord = "LovelyPawword"
 - `UserName` is the email address at which the email is sending from.
 - `PassWord` is the password for the user that is sending the email
 
-## As a package
+## As A Package
 To use the algorithm just import the package as such!
 
 `import "github.com/gophergala2016/Pulse/pulse"`
