@@ -191,6 +191,5 @@ func fireJSONOutput(body string) {
 	}
 
 	// Create a buffer of strings so we are not constantly opening and closing the file
-	stringBuffer = []string{string(val)}
-	file.Write(OutputFile, stringBuffer)
+	file.Write(OutputFile, string(val))
 }
