@@ -3,7 +3,7 @@
   - [Install](#Install)
     - [Pulse Config](#Pulse Config)
 
-# Pulse
+# [Pulse](#pulse)
 Log pulse learns from your log files. It uses a machine learning algorithm that Michael Dropps came up with. It is a go package that can be consumed and used for use for anyone that wants to use it. The package itself just reads lines of strings and returns what it thinks is out of place. That way when you are trying to find that error in your logs, you don't spend hours searching and looking. We have made a simple application around it to show case it's ability.
 
 The application is simple. If you run it with no commands it will listen on whatever port is specified in the `PulseConfig.toml` file. It is listening for any log server willing to give us log lines that are then passed to the algorithm. You can setup an SMTP server to be able to let our application email you if we find anything out of the unusual. But if you use the `-d` flag, for default, it will read what ever log files that already exist and are mapped to using the `PulseConfig.toml`.
