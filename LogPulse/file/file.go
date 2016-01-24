@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-//Read will read filename line by line and each line be returned to channel
+// Read will read filename line by line and each line be returned to channel.
 func Read(filename string, lineOut chan<- string) {
 
 	go func() {
@@ -31,7 +31,7 @@ func Read(filename string, lineOut chan<- string) {
 	}()
 }
 
-//StreamRead will read from io.Reader line by line and each line be returned to channel
+// StreamRead will read from io.Reader line by line and each line be returned to channel.
 func StreamRead(reader multipart.File, lineOut chan<- string) {
 	go func() {
 		scanner := bufio.NewScanner(reader)
@@ -44,7 +44,7 @@ func StreamRead(reader multipart.File, lineOut chan<- string) {
 	}()
 }
 
-//Write will append or create filename and write the slice of strings seperated by a new line
+// Write will append or create filename and write the slice of strings seperated by a new line.
 func Write(filename string, lines []string) {
 	outFile, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 	defer outFile.Close()
@@ -57,7 +57,7 @@ func Write(filename string, lines []string) {
 	}
 }
 
-// UnGZip : used to uncompress files
+// UnGZip will decompress the file from filename.gz to filename
 func UnGZip(filename string) error {
 	file, err := os.Open(filename)
 	if err != nil {

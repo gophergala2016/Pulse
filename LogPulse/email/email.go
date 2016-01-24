@@ -109,13 +109,13 @@ func Send(message string) {
 	case smtpSend:
 		go fireSMTPMessage(message)
 	case jsonSend:
-		go fireJSONOutput(message)
+		fireJSONOutput(message) // We want lines sent in saved in the order they were sent in.
 	}
 }
 
 //SaveToCache takes a string and saves it to file.
 func SaveToCache(message string) {
-	go fireJSONOutput(message)
+	fireJSONOutput(message) // We want lines sent in saved in the order they were sent in.
 }
 
 // IsValid checks to see if the email that is passed in is a valid email or not.
