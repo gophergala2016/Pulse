@@ -1,5 +1,5 @@
-LogPulse/MailGun.toml
-LogPulse/SMTP.toml
+*MailGun.toml
+*SMTP.toml
 demoData/
 *.csv
 *.gz
