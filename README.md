@@ -2,6 +2,8 @@
 [![GoDoc](https://godoc.org/github.com/gophergala2016/Pulse?status.svg)](https://godoc.org/github.com/gophergala2016/Pulse)
 [![Build Status](https://travis-ci.org/gophergala2016/Pulse.svg?branch=master)](https://travis-ci.org/gophergala2016/Pulse)
 
+![Pulse](https://raw.githubusercontent.com/gophergala2016/Pulse/master/images/pulse_logo.png)
+
 Log pulse learns from your log files. It uses a machine learning algorithm that Michael Dropps came up with. It is a go package that can be consumed and used for use for anyone. The package itself just reads lines of strings and returns what it thinks is out of place. That way when you are trying to find that error in your logs, you don't spend hours searching and looking. We have made a simple application around it to show case it's ability.
 
 The application is simple. If you run it with no flags or arguments it will read the `PulseConfig.toml` file and read those files listed there. If you include arguments but no flags then the arguments must be filepaths to logs you want to read. EX `LogPulse someFile.log anotherFile.log waitHereIsAnother.log`.
