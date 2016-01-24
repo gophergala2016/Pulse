@@ -20,7 +20,6 @@ To use the algorithm just import the package as such!
 
 This package exposes the `Run(chan string, func(string))` function. You just need to create a channel that you are going to use. It does require that it is passed in line by line as well. The `func(string)` is a function that is called whenever an unusual string comes by. It is highly recommended that if this is being written to a file to buffer a few strings before you write. Then when you have read all strings dump the rest of the buffer in the file.
 
-
 ## Install
 Installing is as simple as:
 
