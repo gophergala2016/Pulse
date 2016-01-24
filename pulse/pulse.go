@@ -78,13 +78,15 @@ func max(a, b int) int {
 	return a
 }
 
+//sets initial state of the token map, used to lookup existing patterns
 func initTokenMap() {
-	//fmt.Println("Initializing token map..")
 	for i := 0; i < tokenMapSize; i++ {
 		tokenMap[i] = make(map[*pattern]bool)
 	}
 }
 
+//converts a string into a slice of strings.  symbols and contiguous strings of any other type
+//are returned as individual elements.  all whitespace is excluded
 func getTokens(value string) []string {
 	var buffer []rune
 	var result []string
@@ -111,6 +113,7 @@ func getTokens(value string) []string {
 	return result
 }
 
+//adds a vertex to a list of vertices, or updates a variable if the vertex already exists in the list
 func addUpdateVertex(newValue vertex, list []vertex) []vertex {
 	var done = false
 	for i := range list {
@@ -128,6 +131,10 @@ func addUpdateVertex(newValue vertex, list []vertex) []vertex {
 	return list
 }
 
+//with a suppliced list of verticies and a particular vertex, this algorithm
+//locates the vertex in the list that is closest to the supplied vertex,
+//however some preferential treatment is given to vertices that begin a
+//longer sequence of shared substrings in the inputs being compared
 func getNextVertex(value vertex, vertices []vertex) (bool, vertex) {
 	x := value.x
 	y := value.y
@@ -165,6 +172,7 @@ func getNextVertex(value vertex, vertices []vertex) (bool, vertex) {
 	return true, nextVertex
 }
 
+//removes the supplied vertex from the list of vertices, and returns the updated list
 func removeVertexFromList(val vertex, vertices []vertex) []vertex {
 	for i := range vertices {
 		if vertices[i].x == val.x && vertices[i].y == val.y {
@@ -175,7 +183,7 @@ func removeVertexFromList(val vertex, vertices []vertex) []vertex {
 	return vertices
 }
 
-//returns sorted list of tokens in pattern
+//returns sorted list of tokens in pattern, sorted in the order they appear in both strings
 func analyzeMatrix(matrix [][]int, vertices []vertex) (bool, []vertex) {
 	//start with {0, 0}
 	var tokens []vertex
@@ -193,6 +201,8 @@ func analyzeMatrix(matrix [][]int, vertices []vertex) (bool, []vertex) {
 	return float64(len(tokens)) > float64(len(matrix[0])/2), tokens
 }
 
+//using a list of words and a pointer to a pattern, update the
+//token map so that the words can be used to later locate the pattern
 func updateTokenMap(words []token, ref *pattern) {
 	for i := range words {
 		if words[i].variable {
@@ -211,10 +221,9 @@ func updateTokenMap(words []token, ref *pattern) {
 		var pm = tokenMap[sum]
 		pm[ref] = true
 	}
-
-	//fmt.Println("Token map updated with pattern...")
 }
 
+//returns all patterns that a particular word is part of, using the token map
 func patternsFromToken(word string) []*pattern {
 	chars := []rune(word)
 	sum := 0
@@ -235,6 +244,7 @@ func patternsFromToken(word string) []*pattern {
 	return keys
 }
 
+//match a pattern against a new input, revising the pattern under certain circumstances
 func matchPattern(pat pattern, longTokens []string, input string) bool {
 	foundPattern := false
 	var vertices []vertex
@@ -293,7 +303,6 @@ func matchPattern(pat pattern, longTokens []string, input string) bool {
 					if skippedColText == "!WILDCARD!" {
 						skippedColText = ""
 					}
-					//fmt.Println("Skipped col: " + skippedColText)
 				}
 
 				if yDiff > 1 {
@@ -301,7 +310,6 @@ func matchPattern(pat pattern, longTokens []string, input string) bool {
 					for y := range skipped {
 						skippedRowText += skipped[y]
 					}
-					//fmt.Println("Skipped row: " + skippedRowText)
 				}
 
 				var variableText []variation
@@ -318,11 +326,9 @@ func matchPattern(pat pattern, longTokens []string, input string) bool {
 				//add static token to sequence
 				newPattern.tokens = append(newPattern.tokens, token{text, false, true, nil})
 			}
-			//fmt.Printf("%v \n", vertex)
 		}
 
 		if len(newPattern.tokens) <= len(pat.tokens) {
-			//fmt.Println("Revising original pattern...")
 			for i := range newPattern.tokens {
 				var originalToken = pat.tokens[i]
 				var newToken = newPattern.tokens[i]
@@ -353,7 +359,6 @@ func matchPattern(pat pattern, longTokens []string, input string) bool {
 				pat.tokens[i] = originalToken
 				pat.numMatches++
 			}
-			//fmt.Printf("Revised pattern: %v", pat)
 		} else {
 			//determine how close the patterns are
 			var diff = math.Abs(float64(len(pat.tokens)) - float64(len(newPattern.tokens)))
@@ -362,9 +367,7 @@ func matchPattern(pat pattern, longTokens []string, input string) bool {
 				return true
 			}
 
-			//fmt.Printf("pattern tokens: %v  newPattern tokens: %v", len(pat.tokens), len(newPattern.tokens))
-			//a pattern was detected above a certain threshold in the input, but the length of tokens is off
-			reportAnomaly(input)
+			//a match was made above a certain threshold between the pattern and the input, but the length of tokens is too far off
 			return false
 		}
 
@@ -373,6 +376,8 @@ func matchPattern(pat pattern, longTokens []string, input string) bool {
 	return false
 }
 
+//looks for a pattern between two input strings, and learns the new pattern if
+//a certain threshold value is reached when the matrix is analyzed.
 func findPattern(shortTokens []string, longTokens []string) bool {
 	foundPattern := false
 	var vertices []vertex
@@ -403,7 +408,6 @@ func findPattern(shortTokens []string, longTokens []string) bool {
 
 	foundPattern, vertices = analyzeMatrix(matrix, vertices)
 	if foundPattern {
-		//fmt.Println("Found a pattern...")
 		var p pattern
 
 		lastPoint := vertex{-1, -1, 0}
@@ -426,7 +430,6 @@ func findPattern(shortTokens []string, longTokens []string) bool {
 					for x := range skipped {
 						skippedColText += skipped[x]
 					}
-					//fmt.Println("Skipped col: " + skippedColText)
 				}
 
 				if yDiff > 1 {
@@ -434,7 +437,6 @@ func findPattern(shortTokens []string, longTokens []string) bool {
 					for y := range skipped {
 						skippedRowText += skipped[y]
 					}
-					//fmt.Println("Skipped row: " + skippedRowText)
 				}
 
 				var variableText []variation
@@ -451,7 +453,6 @@ func findPattern(shortTokens []string, longTokens []string) bool {
 				//add static token to sequence
 				p.tokens = append(p.tokens, token{text, false, true, nil})
 			}
-			//fmt.Printf("%v \n", vertex)
 		}
 
 		p.numMatches = 1
@@ -466,16 +467,13 @@ func findPattern(shortTokens []string, longTokens []string) bool {
 		patternCreationRateIncreasing = newAvgRate > patternCreationRate
 		patternCreationRate = newAvgRate
 
-		//fmt.Printf("Pattern creation rate: %v Increasing? %v\n", patternCreationRate, patternCreationRateIncreasing)
-
 		inputsSinceLastNewPattern = 0
 		lastPatternCount = numPatterns
-
-		//fmt.Printf("Pattern: %v \n", p)
 	}
 	return foundPattern
 }
 
+//simple index helper function to find a string in a slice
 func indexOfWord(value string, words []string) int {
 	for i := range words {
 		if words[i] == value {
@@ -497,7 +495,6 @@ func indexOfWordInVariations(value string, words []variation) int {
 func reportAnomaly(line string) {
 	fmt.Printf("\nPattern count: %v\n", len(patterns))
 
-	//fmt.Printf("Pattern creation rate: %v, rate increasing? %v", patternCreationRate, patternCreationRateIncreasing)
 	if (!patternCreationRateIncreasing || patternCreationRate <= 0.20) && (len(patterns) != 0) {
 		fmt.Printf("\nReporting anomaly...%v\n", line)
 		report(line)
@@ -535,15 +532,12 @@ func analyze(line string) {
 		}
 	}
 
-	//fmt.Printf("Tokens in common: %v Tokens in line: %v", tokensInCommon, lineTokens)
 	if float64(tokensInCommon)/float64(len(lineTokens)) >= 0.5 {
-		//patternFound = matchInputToPattern(mostLikelyPattern, lineTokens, line)
 		patternFound = matchPattern(*mostLikelyPattern, lineTokens, line)
 	}
 
 	//if no pattern found, compare to unmatched lines, see if a new pattern can be detected
 	if !patternFound {
-		//fmt.Println("Beginning levenstein distance comparison...")
 		for i := range unmatched {
 			var compare = unmatched[i].line
 			var distance = ld(line, compare)
@@ -570,15 +564,15 @@ func analyze(line string) {
 		}
 
 		if !patternFound {
-			unmatched = append(unmatched, unmatchedLog{line, time.Now(), false})
-			//reportAnomaly(line)
+			unmatched = append(unmatched, unmatchedLog{line, time.Now(), true})
+			reportAnomaly(line)
 		} else { //remove unmatched line from unmatched slice
 			unmatched = append(unmatched[:index], unmatched[index+1:]...)
 		}
 	}
 }
 
-//Copied from http://rosettacode.org/wiki/Levenshtein_distance#Go
+//Levenshtein distance algorithm Copied from http://rosettacode.org/wiki/Levenshtein_distance#Go
 func ld(s, t string) int {
 	d := make([][]int, len(s)+1)
 	for i := range d {
