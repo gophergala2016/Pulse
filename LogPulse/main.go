@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/gophergala2016/Pulse/LogPulse/api"
 	"github.com/gophergala2016/Pulse/LogPulse/config"
 	"github.com/gophergala2016/Pulse/LogPulse/email"
@@ -15,19 +14,26 @@ import (
 )
 
 var (
-	def         bool
+	runAPI      bool
 	outputFile  string
 	buffStrings []string
 	logList     []string
 )
 
 func init() {
-	flag.BoolVar(&def, "d", false, "Turn on default mode")
+	flag.BoolVar(&runAPI, "api", false, "Turn on API mode")
 	flag.Parse()
+
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println(r)
+			os.Exit(0)
+		}
+	}()
 
 	cfg, err := config.Load()
 	if err != nil {
-		panic(fmt.Errorf("Could not load the config.\n %v", err))
+		panic(fmt.Errorf("main.init: Could not load the config.\n %v", err))
 	}
 
 	logList = cfg.LogList
@@ -35,14 +41,20 @@ func init() {
 }
 
 func main() {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println(r)
+			os.Exit(0)
+		}
+	}()
 
-	if len(flag.Args()) == 0 && !def {
-		startAPI()
-	} else if def {
+	if len(flag.Args()) == 0 && !runAPI {
 		if len(logList) == 0 {
-			panic(fmt.Errorf("Must supply a list of log files in the config."))
+			panic(fmt.Errorf("main.main: Must supply a list of log files in the config"))
 		}
 		startPulse(logList)
+	} else if runAPI {
+		startAPI()
 	} else {
 		startPulse(flag.Args())
 	}
@@ -53,7 +65,6 @@ func startAPI() {
 }
 
 func startPulse(filenames []string) {
-	spew.Dump(filenames)
 	checkList(filenames)
 	stdIn := make(chan string)
 
@@ -86,9 +97,18 @@ func cleanUp() {
 }
 
 func checkList(filenames []string) {
-	for _, filename := range filenames {
+	for i, filename := range filenames {
 		if _, err := os.Stat(filename); os.IsNotExist(err) {
-			panic(err)
+			panic(fmt.Errorf("main.checkList: %s", err))
+		}
+		if len(filename) > 3 && filename[len(filename)-3:len(filename)] == ".gz" {
+			if err := file.UnGZip(filename); err != nil {
+				panic(fmt.Errorf("main.checkList: %s", err))
+			}
+			if _, err := os.Stat(filename[:len(filename)-3]); os.IsNotExist(err) {
+				panic(fmt.Errorf("main.checkList: %s", err))
+			}
+			filenames[i] = filename[:len(filename)-3]
 		}
 	}
 }

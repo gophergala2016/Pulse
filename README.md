@@ -1,24 +1,30 @@
 # Pulse
-Log pulse learns from your log files. It uses a machine learning algorithm that Michael Dropps came up with. It is a go package that can be consumed and used for use for anyone that wants to use it. The package itself just reads lines of strings and returns what it thinks is out of place. That way when you are trying to find that error in your logs, you don't spend hours searching and looking. We have made a simple application around it to show case it's ability.
+Log pulse learns from your log files. It uses a machine learning algorithm that Michael Dropps came up with. It is a go package that can be consumed and used for use for anyone. The package itself just reads lines of strings and returns what it thinks is out of place. That way when you are trying to find that error in your logs, you don't spend hours searching and looking. We have made a simple application around it to show case it's ability.
 
-The application is simple. If you run it with no commands it will listen on whatever port is specified in the `PulseConfig.toml` file. It is listening for any log server willing to give us log lines that are then passed to the algorithm. You can setup an SMTP server to be able to let our application email you if we find anything out of the unusual. But if you use the `-d` flag, for default, it will read what ever log files that already exist and are mapped to using the `PulseConfig.toml`.
+The application is simple. If you run it with no flags or arguments it will read the `PulseConfig.toml` file and read those files listed there. If you include arguments but no flags then the arguments must be filepaths to logs you want to read. EX `LogPulse someFile.log anotherFile.log waitHereIsAnother.log`.
 
-Not enough what if you don't want to edit the config file every time. Then just pass in file names as arguments like so `LogPulse somefile.log yetAnotherLog.log`. It will read from both and let you know something is up.
-
-You don't have an SMTP server? Log Pulse will output all unusual entries into an output file that you specified in the config.
+LogPulse accepts one flag `-api`. This is what is running our live demo. It accepts a file on an endpoint in the body and runs the algorithm. It will email the user when it is done with all the anomalies it could find (we are using MailGun). If you wanted to run local you could supply an SMTP config file (location is set in `PulseConfig.toml` and must be a toml file). This is were the credentials are so you are able to send emails locally. You could have the SMTP config file setup and run LogPulse without the `-api` flag and it would send emails as well. If no email option is set it will save all emails (subject and body) to the output file that is specified in the `PulseConfig.toml`
 
 # Content
+- [As A Package](#as-a-package)
 - [Install](#install)
   - [Pulse Config](#pulse-config)
   - [SMTP Config](#smtp-config)
-- [As A Package](#as-a-package)
 - [Team](#team)
 - [TODO](#todo)
+
+## As A Package
+To use the algorithm just import the package as such!
+
+`import "github.com/gophergala2016/Pulse/pulse"`
+
+This package exposes the `Run(chan string, func(string))` function. You just need to create a channel that you are going to use. It does require that it is passed in line by line as well. The `func(string)` is a function that is called whenever an unusual string comes by. It is highly recommended that if this is being written to a file to buffer a few strings before you write. Then when you have read all strings dump the rest of the buffer in the file.
+
 
 ## Install
 Installing is as simple as:
 
-`go get http://github.com/gophergala2016/Pulse/pulse/cmd/pulse`
+`go get github.com/gophergala2016/Pulse/LogPulse`
 
 ### Pulse Config
 The `PulseConfig.toml` needs to be located in the same directory as your executable. The file should look similar to this:
@@ -69,12 +75,6 @@ PassWord = "LovelyPassword"
 - `UserName` is the email address at which the email is sending from.
 - `PassWord` is the password for the user that is sending the email
 
-## As A Package
-To use the algorithm just import the package as such!
-
-`import "github.com/gophergala2016/Pulse/pulse"`
-
-This package exposes the `Run(chan string, func(string))` function. You just need to create a channel that you are going to use. It does require that it is passed in line by line as well. The `func(string)` is a function that is called whenever an unusual string comes by. It is highly recommended that if this is being written to a file to buffer a few strings before you write. Then when you have read all strings dump the rest of the buffer in the file.
 ## Team
 - Michael Dropps [Github](https://github.com/michaeldropps)
 - Miguel Espinoza [Github](https://github.com/miguelespinoza)
@@ -98,5 +98,5 @@ This package exposes the `Run(chan string, func(string))` function. You just nee
 - [x] Create Webpage
   - [ ] Consume the API
   - [ ] Video of how it works
-  - [ ] Static content describing the application
+  - [x] Static content describing the application
   - [ ] Support links
