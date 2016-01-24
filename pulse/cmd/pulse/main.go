@@ -60,14 +60,15 @@ func startPulse(filenames []string) {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	// On keyboard interrup cleanup the program
-	go func(i chan string) {
+	go func() {
 		for _ = range c {
 			fmt.Println("Exiting for Keyboard Interupt")
-			close(i)
-			email.DumpBuffer()
+			cleanUp()
 			os.Exit(0)
 		}
-	}(stdIn)
+	}()
+
+	defer cleanUp()
 
 	pulse.Run(stdIn, email.Send)
 	for _, filename := range filenames {
@@ -78,6 +79,10 @@ func startPulse(filenames []string) {
 		}
 	}
 	close(stdIn)
+}
+
+func cleanUp() {
+	email.DumpBuffer()
 }
 
 func checkList(filenames []string) {
