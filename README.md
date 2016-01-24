@@ -13,9 +13,7 @@ LogPulse accepts one flag `-api`. This is what is running our live demo. It acce
 - [Install](#install)
   - [Pulse Config](#pulse-config)
   - [SMTP Config](#smtp-config)
-- [Live Demo](#live-demo)
 - [Team](#team)
-- [TODO](#todo)
 
 ## As A Package
 To use the algorithm just import the package as such!
@@ -78,32 +76,7 @@ PassWord = "LovelyPassword"
 - `UserName` is the email address at which the email is sending from.
 - `PassWord` is the password for the user that is sending the email
 
-## Live Demo
-
-Checkout our live demo at [pulse.clemsonopoly.com](http://pulse.clemsonopoly.com#live-demo)
-
 ## Team
 - Michael Dropps [Github](https://github.com/michaeldropps)
 - Miguel Espinoza [Github](https://github.com/miguelespinoza)
 - Will Dixon [Github](https://github.com/dixonwille)
-
-## TODO
-- [ ] Create Algorithm
-  - [ ] DumpPattern
-  - [ ] LoadPattern
-- [x] Read Config values
-  - [x] Files
-  - [x] Read a log file on Hard Drive
-  - [x] Write to a file to save outstanding logs
-- [x] Be able to send emails
-  - [x] Use Mailgun's API to send emails
-  - [x] Validate User's Email using Mailgun
-  - [x] Store keys securely
-- [ ] Create the API
-  - [ ] POST: log string
-  - [ ] POST: file
-- [x] Create Webpage
-  - [ ] Consume the API
-  - [ ] Video of how it works
-  - [x] Static content describing the application
-  - [ ] Support links
