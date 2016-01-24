@@ -89,5 +89,5 @@ PassWord = "LovelyPassword"
 - [x] Create Webpage
   - [ ] Consume the API
   - [ ] Video of how it works
-  - [ ] Static content describing the application
+  - [x] Static content describing the application
   - [ ] Support links
