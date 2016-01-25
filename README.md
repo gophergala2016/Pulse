@@ -30,6 +30,9 @@ Installing is as simple as:
 
 `go get github.com/gophergala2016/Pulse/LogPulse`
 
+## Running
+`go run main.go <Path/to/File>`
+
 ### Pulse Config
 The `PulseConfig.toml` needs to be located in the same directory as your executable. The file should look similar to this:
 ```
