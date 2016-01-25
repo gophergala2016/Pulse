@@ -86,4 +86,4 @@ PassWord = "LovelyPassword"
 ## Team
 - Michael Dropps [Github](https://github.com/michaeldropps)
 - Miguel Espinoza [Github](https://github.com/miguelespinoza)
-- Will Dixon [Github](https://github.com/dixonwille)
+- Will Dixon [Github](https://github.com/dixonwille) [Email](mailto:dixonwille@gmail.com)
