@@ -18,6 +18,7 @@ LogPulse accepts one flag `-api`. It accepts a file on an endpoint in the body a
   - [Pulse Config](#pulse-config)
   - [SMTP Config](#smtp-config)
 - [Team](#team)
+- [Support](mailto:dixonwille@gmail.com)
 
 ## As A Package
 To use the algorithm just import the package as such!
