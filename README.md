@@ -12,8 +12,9 @@ LogPulse accepts one flag `-api`. It accepts a file on an endpoint in the body a
 
 # Content
 - [As A Package](#as-a-package)
-- [Video Demonstration] (https://www.youtube.com/playlist?list=PLVRxiozOhbUyYfLm_1FVRVgtgAMFZzfcq)
+- [Video Demonstration] (https://youtu.be/KddVBH__ZHw)
 - [Install](#install)
+- [Running](#running)
   - [Pulse Config](#pulse-config)
   - [SMTP Config](#smtp-config)
 - [Team](#team)
