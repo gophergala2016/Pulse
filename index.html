@@ -48,7 +48,7 @@
 
 <p>The application is simple. If you run it with no flags or arguments it will read the <code>PulseConfig.toml</code> file and read those files listed there. If you include arguments but no flags then the arguments must be filepaths to logs you want to read. EX <code>LogPulse someFile.log anotherFile.log waitHereIsAnother.log</code>.</p>
 
-<p>LogPulse accepts one flag <code>-api</code>. This is what is running our live demo. It accepts a file on an endpoint in the body and runs the algorithm. It will email the user when it is done with all the anomalies it could find (we are using MailGun). If you wanted to run local you could supply an SMTP config file (location is set in <code>PulseConfig.toml</code> and must be a toml file). This is were the credentials are so you are able to send emails locally. You could have the SMTP config file setup and run LogPulse without the <code>-api</code> flag and it would send emails as well. If no email option is set it will save all emails (subject and body) to the output file that is specified in the <code>PulseConfig.toml</code></p>
+<p>LogPulse accepts one flag <code>-api</code>. It accepts a file on an endpoint in the body and runs the algorithm. It will email the user when it is done with all the anomalies it could find (we are using MailGun). If you wanted to run local you could supply an SMTP config file (location is set in <code>PulseConfig.toml</code> and must be a toml file). This is were the credentials are so you are able to send emails locally. You could have the SMTP config file setup and run LogPulse without the <code>-api</code> flag and it would send emails as well. If no email option is set it will save all emails (subject and body) to the output file that is specified in the <code>PulseConfig.toml</code></p>
 
 <h1>
 <a id="content" class="anchor" href="#content" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Content</h1>
@@ -82,6 +82,11 @@
 <p>Installing is as simple as:</p>
 
 <p><code>go get github.com/gophergala2016/Pulse/LogPulse</code></p>
+
+<h2>
+<a id="running" class="anchor" href="#running" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Running</h2>
+
+<p><code>go run main.go &lt;Path/to/File&gt;</code></p>
 
 <h3>
 <a id="pulse-config" class="anchor" href="#pulse-config" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Pulse Config</h3>
